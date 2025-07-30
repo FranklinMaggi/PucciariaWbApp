@@ -1371,9 +1371,7 @@ function render_carrello() {
         <img src="./img/order-a-take-away.jpg" alt="Busta della spesa">
       </div>
       <br><i>Carrello vuoto</i>
-      <button id="close-carrello-btn" class="carrello-btn full-width secondary">
-        Chiudi carrello
-      </button>
+     
     `;
     svuota_carrello_local();
     aggiornaBadge();
@@ -1404,7 +1402,7 @@ function render_carrello() {
     ${itemsHtml}
     <button id="carrello-conferma-btn" class="carrello-btn full-width">Conferma ordine</button>
     <button id="svuota-carrello-btn" class="carrello-btn full-width danger">🗑️ Svuota carrello</button>
-    <button id="close-carrello-btn" class="carrello-btn full-width secondary">Chiudi carrello</button>
+   
   `;
 
   carrello_div.onclick = function(e) {
@@ -1431,10 +1429,7 @@ function render_carrello() {
       }
       return;
     }
-    else if (e.target.id === 'close-carrello-btn') {
-      carrello_div.classList.remove('sidecarrello-visible');
-      return;
-    }
+    
     else if (e.target.id === 'svuota-carrello-btn') {
       carrello = [];
       svuota_carrello_local();
