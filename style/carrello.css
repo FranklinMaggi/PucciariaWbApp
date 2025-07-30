@@ -1,0 +1,264 @@
+/* === CARRELLO SIDEBAR === */
+#carrello {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 340px;
+  max-width: 100%;
+  height: 100vh;
+  background: var(--bianco);
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+#carrello.sidecarrello-visible {
+  transform: translateX(0);
+}
+
+/* === CONTENITORE INTERNO === */
+.carrello {
+  background: var(--bianco);
+  border-left: 3px solid var(--giallo-pucciaria);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+  padding: 1.5em;
+  max-width: 420px;
+  width: 100%;
+  font-family: var(--font-body);
+  overflow-y: auto;
+}
+
+/* === TOGGLE CARRELLO MOBILE === */
+#toggle-carrello-btn {
+  position: fixed;
+  bottom: 1em;
+  right: 1em;
+  background: var(--giallo-pucciaria);
+  color: black;
+  padding: 0.8em;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.4em;
+  box-shadow: var(--ombra-morbida);
+  z-index: 1002;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+#toggle-carrello-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 226, 75, 0.35);
+}
+
+/* === IMMAGINE DI TESTA === */
+#carrello-immagine {
+  display: flex;
+  justify-content: center;
+  margin: 1em 0 1.5em;
+  padding: 0.5em;
+  background: var(--bianco);
+  border-radius: 1.5em;
+  border: 2px dashed var(--giallo-pucciaria);
+  box-shadow: var(--ombra-inset);
+}
+#carrello-immagine img {
+  max-width: 180px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.92;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+  border-radius: 1.2em;
+}
+
+/* === ITEM CARRELLO === */
+.carrello-item {
+  padding: 0.8em 0;
+  border-bottom: 1px dashed #ccc;
+}
+.carrello-item b {
+  color: var(--nero-fumo);
+}
+
+/* === AZIONI PER OGNI ITEM === */
+.item-actions {
+  display: flex;
+  gap: 0.3em;
+  margin-top: 0.5em;
+}
+.item-actions button {
+  background: var(--giallo-pucciaria);
+  color: black;
+  border-radius: 0.5em;
+  font-weight: bold;
+  border: 1px solid #e8c204;
+  padding: 0.2em 0.6em;
+  cursor: pointer;
+}
+
+/* === BOTTONI TONDI: + / - / modifica / cestino === */
+.btn-tondo {
+  width: 2.4em;
+  height: 2.4em;
+  min-width: 2.4em;
+  min-height: 2.4em;
+  border-radius: 50%;
+  border: 2px solid var(--giallo-pucciaria);
+  background: transparent;
+  color: var(--nero-fumo);
+  font-weight: bold;
+  font-size: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--ombra-morbida);
+}
+.btn-tondo:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  transform: translateY(-1px);
+}
+.btn-tondo:active {
+  transform: scale(0.95);
+}
+
+/* === BOTTONE FINALE "CONFERMA ORDINE" === */
+.carrello-btn.full-width {
+  width: 100%;
+  margin-top: 1em;
+  padding: 0.8em 1.2em;
+  border-radius: 1.3em;
+  background: var(--giallo-pucciaria);
+  color: black;
+  font-size: 1.05em;
+  font-weight: bold;
+  border: 1.5px solid #f5d00a;
+  cursor: pointer;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.carrello-btn.full-width:hover {
+  background: #ffe800;
+}
+.carrello-btn.full-width:active {
+  background: #ffd700;
+}
+
+/* === NIGHT MODE === */
+body.night #carrello,
+body.night .carrello {
+  background: #1a1a1a;
+  color: #f1f1f1;
+  border-left: 3px solid var(--giallo-pucciaria);
+  box-shadow: -4px 0 16px rgba(255, 226, 75, 0.1);
+}
+
+body.night .carrello-item {
+  border-bottom: 1px dashed #555;
+}
+body.night .carrello-item b {
+  color: var(--giallo-pucciaria);
+}
+
+body.night .item-actions button,
+body.night .carrello-btn.full-width,
+body.night .btn-tondo {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  border-color: var(--giallo-pucciaria);
+}
+
+body.night #carrello-immagine {
+  background: #222;
+  border-color: var(--giallo-pucciaria);
+}
+
+/* === RIEPILOGO ORDINE (fase 1) === */
+#esito {
+  background: var(--sfondo-card);
+  border: 2px solid var(--giallo-pucciaria);
+  border-radius: var(--raggio);
+  padding: 1.5em;
+  margin-top: 1em;
+  box-shadow: var(--shadow-small);
+  transition: all 0.3s ease;
+}
+
+#esito ul {
+  list-style: none;
+  padding: 0;
+  margin: 1em 0;
+}
+
+#esito li {
+  margin-bottom: 0.6em;
+  font-size: 1em;
+  color: var(--nero-fumo);
+}
+
+#esito li b {
+  color: var(--nero-fumo);
+}
+
+/* TOTALE FINALE */
+#esito .totale {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: var(--nero-fumo);
+  margin-bottom: 1.2em;
+}
+
+/* === FORM DATI ORDINE === */
+.ordine-form input,
+.ordine-form select {
+  width: 100%;
+  padding: 0.75em;
+  font-size: 1em;
+  border: 1px solid var(--giallo-pucciaria);
+  border-radius: 1em;
+  margin-bottom: 1em;
+  background: white;
+  color: var(--nero-fumo);
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ordine-form input:focus,
+.ordine-form select:focus {
+  outline: none;
+  border-color: var(--giallo-pucciaria);
+  box-shadow: 0 0 0 2px rgba(255, 226, 75, 0.3);
+}
+
+/* BOTTONE INVIA */
+.ordine-form button.carrello-btn {
+  width: 100%;
+  padding: 0.8em;
+  font-size: 1.1em;
+  background-color: var(--giallo-pucciaria);
+  color: black;
+  border: none;
+  border-radius: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ordine-form button.carrello-btn:hover {
+  background-color: #ffdc2d;
+}
+
+/* BOTTONE ANNULLA */
+#annulla-form-btn {
+  background: #fff;
+  color: var(--nero-fumo);
+  border: 2px solid var(--giallo-pucciaria);
+  border-radius: 1em;
+  padding: 0.6em 1.3em;
+  font-size: 1em;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+#annulla-form-btn:hover {
+  background-color: #fffbe5;
+}

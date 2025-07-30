@@ -1,0 +1,33 @@
+/* === NIGHT MODE: Tablet e Mobile (≤768px) === */
+@media (max-width: 768px) {
+    body.night {
+      background-color: #000;
+    }
+  
+    body.night .catalogo-prodotti .card {
+      box-shadow: 0 2px 12px rgba(255, 255, 0, 0.1);
+    }
+  
+    body.night #carrello {
+      background: #1a1a1a;
+    }
+  }
+  
+  /* === NIGHT MODE: Smartphone (≤600px) === */
+  @media (max-width: 600px) {
+    body.night .main.header h1 {
+      font-size: 1.35em;
+      color: var(--giallo-pucciaria);
+    }
+  
+    body.night .header-inner {
+      flex-direction: row;
+      justify-content: flex-start;
+    }
+  
+    body.night .mini-logo {
+      height: 48px;
+      filter: drop-shadow(0 0 6px rgba(255, 226, 75, 0.3));
+    }
+  }
+  

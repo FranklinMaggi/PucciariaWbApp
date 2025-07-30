@@ -1,0 +1,55 @@
+/* === COOKIE BANNER === */
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: #333;
+  color: white;
+  padding: 1em 1.5em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  z-index: 1100;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
+  font-family: var(--font-body);
+  font-size: 0.95em;
+}
+
+.cookie-banner p {
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* === BOTTONE ACCETTA COOKIE === */
+.cookie-accept-btn {
+  background: var(--giallo-pucciaria);
+  border: none;
+  padding: 0.6em 1em;
+  border-radius: var(--raggio);
+  font-weight: bold;
+  color: var(--nero-fumo);
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.cookie-accept-btn:hover {
+  background: #ffe800;
+  transform: translateY(-1px);
+}
+.cookie-accept-btn:active {
+  transform: scale(0.97);
+}
+.cookie-accept-btn:focus-visible {
+  outline: 2px solid var(--giallo-scuro);
+  outline-offset: 2px;
+}
+
+/* === NIGHT MODE === */
+body.night .cookie-banner {
+  background: #1a1a1a;
+  color: #f1f1f1;
+  box-shadow: 0 -2px 12px rgba(255, 226, 75, 0.12);
+}

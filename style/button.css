@@ -1,0 +1,130 @@
+/* === BOTTONI PRINCIPALI === */
+.carrello-btn,
+.customize-btn,
+.confirm-cart-btn,
+#cookie-accept-btn {
+  background: var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  border: 2px solid var(--giallo-pucciaria);
+  border-radius: 1.3em;
+  font-weight: bold;
+  font-size: 1.05em;
+  padding: 0.6em 1.2em;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.carrello-btn:hover,
+.customize-btn:hover,
+.confirm-cart-btn:hover,
+#cookie-accept-btn:hover {
+  background: #ffe000;
+  transform: translateY(-1px);
+}
+
+.carrello-btn:active,
+.customize-btn:active,
+.confirm-cart-btn:active,
+#cookie-accept-btn:active {
+  background: #ffd900;
+  transform: scale(0.96);
+}
+/* === STEP QUANTITÀ TONDI === */
+.bevanda-qty-stepper button {
+    width: 2.4em;
+    height: 2.4em;
+    border-radius: 50%;
+    background: var(--giallo-pucciaria);
+    border: 2px solid var(--giallo-pucciaria);
+    color: var(--nero-fumo);
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+    box-shadow: var(--ombra-morbida);
+    transition: all 0.2s ease;
+  }
+  
+  .bevanda-qty-stepper button:hover {
+    background: #ffe000;
+    transform: translateY(-1px);
+  }
+  
+  .bevanda-qty-stepper button:active {
+    transform: scale(0.94);
+  }
+  /* === PULSANTI TONDI CARRELLO === */
+.remove-btn,
+.edit-btn,
+.qty-plus,
+.qty-minus {
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  font-weight: bold;
+  font-size: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.remove-btn:hover,
+.edit-btn:hover,
+.qty-plus:hover,
+.qty-minus:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.remove-btn:active,
+.edit-btn:active,
+.qty-plus:active,
+.qty-minus:active {
+  transform: scale(0.95);
+}
+body.night .remove-btn:hover {
+    background: #c62828;
+    color: white;
+  }
+  /* Active (click) */
+  .remove-btn:active,
+  .edit-btn:active,
+  .qty-plus:active,
+  .qty-minus:active {
+    transform: scale(0.95);
+  }
+/* === NIGHT MODE: Bottoni === */
+body.night .carrello-btn,
+body.night .customize-btn,
+body.night .confirm-cart-btn,
+body.night #cookie-accept-btn,
+body.night .bevanda-qty-stepper button,
+body.night .remove-btn,
+body.night .edit-btn,
+body.night .qty-plus,
+body.night .qty-minus {
+  background-color: #222;
+  color: var(--giallo-pucciaria);
+  border-color: var(--giallo-pucciaria);
+}
+
+body.night .remove-btn:hover,
+body.night .edit-btn:hover,
+body.night .qty-plus:hover,
+body.night .qty-minus:hover,
+body.night .carrello-btn:hover,
+body.night .customize-btn:hover,
+body.night .confirm-cart-btn:hover,
+body.night #cookie-accept-btn:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+}
+body.night .remove-btn:hover {
+    background: #c62828;
+    color: white;
+  }
+  

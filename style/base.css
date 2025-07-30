@@ -1,0 +1,106 @@
+/* === VARIABILI GLOBALI === */
+:root {
+  --giallo-pucciaria: #f8b30aff;
+  --giallo-scuro: #fab100;
+  --nero-fumo: #1a1a1a;
+  --bianco: #fffef5;
+
+  --ombra-morbida: 0 2px 10px rgba(0, 0, 0, 0.12);
+  --ombra-profonda: 0 4px 14px rgba(0, 0, 0, 0.2);
+  --ombra-inset: inset 0 0 8px rgba(255, 226, 75, 0.1);
+
+  --raggio: 12px;
+  --spazio: 1.2em;
+
+  --tab-larghezza-uniforme: 220px;
+  --tab-altezza-uniforme: 30px;
+
+  --font-body: system-ui, sans-serif;
+}
+
+/* === STILE BASE BODY === */
+body {
+  background: linear-gradient(to bottom, #fffef5, #ffe24b20);
+  font-family: var(--font-body);
+  color: var(--nero-fumo);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* === IMMAGINI GENERICHE === */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* === NIGHT MODE: IMMAGINI CON FILTRO + SPIA VISIVA === */
+body.night .card-img-wrap img {
+  filter: brightness(0.85) contrast(1.1);
+  position: relative;
+}
+
+/* SPIA PER LE IMMAGINI (opzionale) */
+body.night .card-img-wrap::after {
+  content: '🌙';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(255, 226, 75, 0.85);
+  color: black;
+  font-size: 0.8em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  z-index: 3;
+  pointer-events: none;
+  font-family: sans-serif;
+}
+
+/* === LINK === */
+a {
+  color: var(--giallo-pucciaria);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+@font-face {
+  font-family: 'DecaloType';
+  src: url('../fonts/Decalotype-ExtraBold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === FONT FACE: Bernier === */
+@font-face {
+  font-family: 'BernierDistressed';
+  src: url('../fonts/BERNIERDistressedRegular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'TalkingBaseball';
+  src: url('../fonts/talkin_baseball.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+
+}
+@font-face {
+  font-family: 'hot-Varsity';
+  src: url('../fonts/Hot-Varsity-Team_DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}

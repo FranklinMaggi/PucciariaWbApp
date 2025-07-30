@@ -1,0 +1,101 @@
+@import "navigation.css";
+/* === WRAPPER TABS CATEGORIE E SOTTOCATEGORIE === */
+.categorie-tabs,
+.sottocategorie-tabs 
+#nightmode-toggle{
+  display: flex;
+  flex-wrap: nowrap;           /* non andare a capo */
+  overflow-x: auto;
+  gap: 0.6em;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.categorie-tabs::-webkit-scrollbar,
+.sottocategorie-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* === STILE BASE PER TABS === */
+.tab-cat,
+.tab-subcat{
+  background: transparent;
+  border: 2px solid var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  font-size: 1.05em;
+  padding: 0.6em 1.5em;
+  border-radius: 3em; /* più tondeggiante */
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: all 0.25s ease-in-out;
+  box-shadow: var(--ombra-morbida);
+  flex: 1 0 auto;
+  scroll-snap-align: start;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Hover */
+.tab-cat:hover,
+.tab-subcat:hover {
+  background: var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  box-shadow: 0 0 0 2px var(--giallo-scuro), 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Attivo */
+.tab-cat.active,
+.tab-subcat.active {
+  background: var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--giallo-scuro), 0 2px 10px rgba(0, 0, 0, 0.12);
+  transform: scale(1.03);
+}
+
+/* === CATALOGO PRODOTTI === */
+#catalogo-prodotti {
+  padding: 1.5em 1em;
+  display: grid;
+  gap: 1.2em;
+}
+
+body.night nav {
+  background: #1d1c17;
+  border-color: var(--giallo-pucciaria);
+  box-shadow: none;
+}
+
+body.night .cat-title {
+  background: #2d2500;
+  color: var(--giallo-pucciaria);
+  box-shadow: 0 0 12px rgba(255, 226, 75, 0.2);
+}
+body.night .tab-cat,
+body.night .tab-subcat {
+  background-color: #222;
+  color: var(--giallo-pucciaria);
+  border: 1.5px solid var(--giallo-pucciaria);
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
+}
+
+body.night .tab-cat:hover,
+body.night .tab-subcat:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  box-shadow: 0 0 0 2px var(--giallo-scuro);
+}
+
+body.night .tab-cat.active,
+body.night .tab-subcat.active {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 0 0 2px var(--giallo-scuro);
+}

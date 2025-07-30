@@ -1,0 +1,36 @@
+/* === CLOCK BASE STYLE (day mode) === */
+.clock-widget {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 1.1em;
+  color: var(--nero-fumo); /* colore testuale neutro in day mode */
+  background: #fffdf1;
+  padding: 0.4em 0.8em;
+  border-radius: 1em;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.05em;
+  animation: pulseClock 3s infinite ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+/* === ANIMAZIONE PULSANTE CLOCK === */
+@keyframes pulseClock {
+  0%   { box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); }
+  50%  { box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); }
+  100% { box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); }
+}
+
+/* === NIGHT MODE OVERRIDE === */
+body.night .clock-widget {
+  background: #111107;
+  color: #ffe24b;
+  box-shadow: 0 0 6px rgba(255, 226, 75, 0.4);
+  animation: pulseClockNight 3s infinite ease-in-out;
+}
+
+/* === ANIMAZIONE PER NIGHT MODE === */
+@keyframes pulseClockNight {
+  0%   { box-shadow: 0 0 6px rgba(255, 226, 75, 0.3); }
+  50%  { box-shadow: 0 0 10px rgba(255, 226, 75, 0.7); }
+  100% { box-shadow: 0 0 6px rgba(255, 226, 75, 0.3); }
+}

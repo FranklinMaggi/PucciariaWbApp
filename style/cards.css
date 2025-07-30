@@ -1,0 +1,319 @@
+@import "base.css";
+
+/* === CARD PRINCIPALE === */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* ✅ centra tutto */
+  overflow: hidden;
+  background: white;
+  border: 2px solid var(--giallo-pucciaria);
+  border-radius: var(--raggio);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  text-align: center; /* ✅ allinea testo */
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  padding: 1em;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* === TITOLO CON SFONDO GIALLO === */
+.card h2 {
+  font-family: 'BernierDistressed', sans-serif;
+  background: var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  padding: 0.3em 0.6em;
+  font-size: 1.25em;
+  font-weight: bold;
+  margin: 0 0 0.5em;
+  border-radius: var(--raggio);
+    font-size: clamp(1.1em, 2vw, 1.4em);
+  }
+  
+  .card .carrello-btn,
+  .card .customize-btn {
+    font-size: clamp(0.9em, 2vw, 1.05em);
+  }
+  
+
+
+/* === CHECKLIST INGREDIENTI + PREZZO === */
+.card .card-prezzo,
+.card .quick-ingredients label {
+  font-family: 'DecaloType', sans-serif;
+}
+
+.quick-ingredients {
+  width: 100%;
+}
+
+.quick-ingredients label {
+  display: block;
+  margin: 0.2em auto;
+  padding: 0.2em 0.5em;
+  border-left: 4px solid var(--giallo-scuro);
+  font-size: 0.98em;
+  font-weight: 500;
+  text-align: left; /* ✅ mantieni leggibilità della checklist */
+  max-width: 320px;
+}
+
+.quick-ingredients input[type="checkbox"]:disabled + span {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* === BOTTONI GIALLO === */
+.card .carrello-btn,
+.card .customize-btn {
+  font-family: 'talkingBaseball', sans-serif;
+  background: var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  border: 2px solid var(--giallo-pucciaria);
+  border-radius: 1.2em;
+  font-weight: bold;
+  padding: 0.6em 1em;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 0.3em auto;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.25s ease;
+}
+
+.card .carrello-btn:hover,
+.card .customize-btn:hover {
+  background: var(--giallo-pucciaria);
+  box-shadow: 0 4px 12px rgba(255, 226, 75, 0.25);
+  transform: translateY(-2px);
+}
+
+.card .carrello-btn:active,
+.card .customize-btn:active {
+  background: var(--giallo-pucciaria);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: translateY(0);
+}
+
+/* === CONTENITORE IMMAGINE === */
+.card-img-wrap {
+  width: 100%;
+  max-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card-img-wrap img.card-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  display: block;
+  border-top: 1px solid #eee;
+}
+
+/* === IMMAGINE INLINE === */
+.card-img-inline {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 0.6em 0;
+  border-radius: var(--raggio);
+  background: var(--bianco);
+  border: 1px solid var(--giallo-pucciaria);
+  overflow: hidden;
+}
+
+.card-img-inline img.card-img {
+  width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  display: block;
+}
+
+/* === EXTRA PANE FISSO === */
+.extra-pane {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bianco);
+  border-top: 2px solid var(--giallo-pucciaria);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  padding: var(--spazio);
+  transform: translateY(100%);
+  transition: transform 0.35s ease-in-out;
+}
+
+.extra-pane.visible {
+  transform: translateY(0);
+}
+
+/* === WRAPPER AZIONI CARD === */
+.card .card-buttons,
+.card .card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  width: 100%;
+}
+
+/* === NIGHT MODE === */
+body.night .card {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+  border: 2px solid var(--giallo-pucciaria);
+  box-shadow: 0 4px 14px rgba(255, 226, 75, 0.12);
+}
+
+body.night .card h2 {
+  background: var(--giallo-pucciaria);
+  color: #000;
+}
+
+body.night .card .carrello-btn,
+body.night .card .customize-btn {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  border: 2px solid var(--giallo-pucciaria);
+}
+
+body.night .card .carrello-btn:hover,
+body.night .card .customize-btn:hover {
+  background: #ffe800;
+}
+
+body.night .card .carrello-btn:active,
+body.night .card .customize-btn:active {
+  background: #ffd700;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 700px) {
+  .card {
+    width: 100%;
+    max-width: 600px;     /* ✅ Stessa larghezza del riepilogo */
+    margin: 0 auto;       /* ✅ Centrata */
+  }
+
+  .card-content {
+    padding: 1em;
+    width: 100%;
+    max-width: 540px;     /* oppure 100%, per allineare al form modale */
+    margin: 0 auto;
+  }
+
+  .card-img-wrap {
+    max-height: 160px;
+  }
+}
+
+@media (orientation: landscape) and (max-width: 900px) {
+  .card {
+    align-items: flex-start;      /* Allinea il contenuto a sinistra */
+    text-align: center;           /* Mantiene centrato il testo */
+    margin-left: 0;               /* Annulla eventuale centratura */
+    margin-right: auto;
+  }
+
+  .card-content {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  .card .card-buttons,
+  .card .card-actions {
+    align-items: center;          /* Bottoni ancora centrati */
+  }
+
+  .quick-ingredients label {
+    text-align: left;             /* Checklist leggibile e ordinata */
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media (orientation: landscape) and (min-width: 700px) {
+  .card {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.2em;
+    text-align: left;
+  }
+
+  .card-img-wrap {
+    width: 40%;
+    max-height: none;
+  }
+
+  .card-content {
+    width: 60%;
+  }
+}
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.2em;
+}
+@media (max-width: 768px) {
+  .card,
+  .riepilogo-item,
+  .riepilogo-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto 1em;
+    border-radius: var(--raggio);
+    box-shadow: var(--ombra-morbida);
+  }
+
+  .card .card-body,
+  .riepilogo-item .riepilogo-contenuto {
+    padding: 0.8em 1em;
+  }
+
+  .card img,
+  .riepilogo-card img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: var(--raggio);
+  }
+
+  .card h3,
+  .riepilogo-item h3 {
+    font-size: 1.1em;
+    text-align: center;
+  }
+
+  .card .prezzo,
+  .riepilogo-item .prezzo {
+    font-size: 1em;
+    font-weight: bold;
+    text-align: center;
+  }
+}
+body.night .card,
+body.night .riepilogo-item,
+body.night .modal-content-wrapper {
+  background-color: #2a2a2a !important;
+  border-color: #444 !important;
+}

@@ -1,0 +1,150 @@
+
+/* Font personalizzato per titoli */
+@font-face {
+    font-family: 'Talking Baseball';
+    src: url('../fonts/talkin baseball.otf') format('opentype');
+}
+
+body {
+    margin: 0;
+    font-family: 'Decalotype', sans-serif;
+    background-color: #f8f9fa; /* Bianco fumo */
+    color: #333;
+}
+
+header {
+    background-color: #222; /* Nero fumè */
+    color: #f8f9fa;
+    padding: 1rem;
+    text-align: center;
+}
+
+.brand-title {
+    font-size: 2.5rem;
+    font-family: 'Bernier Distressed', serif;
+}
+
+.brand-title .registered {
+    font-size: 0.9rem;
+    vertical-align: super;
+}
+
+#category-nav {
+    display: flex;
+    overflow-x: auto;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    background-color: #fff6d0; /* Giallo Pucciaria */
+    border-top: 2px solid #222;
+    border-bottom: 2px solid #222;
+}
+
+#category-nav button {
+    background-color: #f8f9fa;
+    border: 2px solid #222;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+main {
+    padding: 1rem;
+}
+
+.scroll-wrapper {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 1rem;
+}
+
+.sottocategoria-title {
+    margin-top: 2rem;
+    font-size: 1.8rem;
+    color: #222;
+    font-weight: bold;
+}
+
+.product-card {
+    min-width: 250px;
+    background-color: #fff;
+    border: 3px solid #f3cb05; /* Giallo Pucciaria */
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 2px 4px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.product-card h3 {
+    background-color: #f3cb05;
+    color: #000;
+    font-family: 'Talking Baseball', cursive;
+    font-size: 1.3rem;
+    text-align: center;
+    padding: 0.3rem;
+    border-radius: 8px;
+}
+
+.product-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+}
+
+.product-card ul {
+    padding-left: 1.2rem;
+    margin: 0;
+}
+
+.allergene-evidenziato {
+    background-color: #ffdddd;
+    color: red;
+    font-weight: bold;
+}
+
+.add-to-cart-btn {
+    margin-top: auto;
+    padding: 0.5rem;
+    background-color: #f3cb05;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #e6bb00;
+}
+
+#carrello-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+}
+
+#modale-personalizzazione {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#modale-personalizzazione .modale-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+}
+
+.hidden {
+    display: none !important;
+}

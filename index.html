@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Pucciaria®</title>
+  <link rel="stylesheet" href="style/main.css">
+</head>
+<body>
+
+  <!-- HERO DI BENVENUTO (disabilitato per ora) -->
+  <!--
+  <section id="welcome-screen" class="hero">
+    <div class="welcome-content">
+      <img src="img/logo.png" alt="Pucciaria Logo" class="welcome-logo" />
+      <h1>BENVENUTO DA PUCCIARIA</h1>
+      <p class="claim">Gli Artigiani della puccia</p>
+      <button id="entra-menu-btn" class="entra-btn" type="button">Scopri il Menù</button>
+    </div>
+  </section>
+  -->
+
+  <!-- RIEPILOGO ORDINE -->
+  <section id="riepilogo-ordine" class="riepilogo-wrapper" hidden>
+    <h2>Riepilogo Ordine</h2>
+    <div id="riepilogo-contenuto"></div>
+    <div class="riepilogo-actions">
+      <button id="btn-invia-ordine" class="carrello-btn">Invia Ordine</button>
+      <button id="btn-annulla-ordine" class="carrello-btn danger">Annulla</button>
+    </div>
+  </section>
+
+  <!-- BLOCCO PRINCIPALE -->
+  <section id="main-app">
+
+    <!-- HEADER INTERNO -->
+    <header id="app-internal-header">
+      <div class="header-inner">
+        <div class="header-logo">
+          <img src="img/logo.png" alt="Logo Pucciaria" class="mini-logo" id="mini-logo-top">
+        </div>
+        <div class="main header">
+          <h1>Pucciaria®</h1>
+          <p class="claim"></p>
+        </div>
+        <div id="orologio-header" class="clock-widget">mer 30/07 04:56</div>
+      </div>
+    </header>
+
+    <!-- MENU CATEGORIE -->
+    <nav>
+      <div id="categorie-filtri" class="categorie-tabs"></div>
+      <div id="sottocategorie-filtri" class="sottocategorie-tabs"></div>
+    </nav>
+
+    <!-- MESSAGGIO ESITO ORDINE -->
+    <div id="esito" class="order-status-message" hidden></div>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <main class="app-main-content">
+      <div class="main-content-layout">
+
+        <!-- CATALOGO PRODOTTI -->
+        <div id="catalogo-prodotti" class="catalogo-prodotti"></div>
+
+        <!-- CARRELLO -->
+        <aside id="carrello" class="carrello" aria-label="Carrello">
+          <button id="close-carrello-btn" class="close-carrello-btn" aria-label="Chiudi carrello">×</button>
+          <div id="carrello-contenuto" class="carrello-scroll-area"></div>
+        </aside>
+
+        <!-- CONFERMA ORDINE -->
+        <button id="conferma-carrello" class="confirm-cart-btn" type="button" hidden>
+          Conferma Ordine
+        </button>
+
+        <!-- CICCIOSYSTEM: EXTRA PUCCIA/CICCIO -->
+        <aside id="extra-pane-aside" class="extra-pane hidden">
+          <div class="extra-pane-content">
+            <p class="info-ciccio-msg">
+              Non serviamo pane con i <b>senza puccia</b> e <b>antipasti</b>.<br>
+              Se desideri del pane, puoi aggiungere al carrello un <b>Ciccio</b> o una <b>Puccia Vuota</b>.
+            </p>
+            <div id="extra-pane-cards" class="minicards-wrapper"></div>
+            <button id="close-extra-pane-btn" class="carrello-btn full-width secondary">Chiudi</button>
+          </div>
+        </aside>
+
+      </div>
+    </main>
+  </section>
+
+  <!-- PULSANTE CARRELLO MOBILE -->
+  <button id="toggle-carrello-btn" aria-label="Apri Carrello">🛒</button>
+
+  <!-- COOKIE BANNER -->
+  <div id="cookie-banner" class="cookie-banner" hidden>
+    Questo sito utilizza cookie tecnici (localStorage) per migliorare l’esperienza utente.
+    <button id="cookie-accept-btn" class="cookie-accept-btn">Accetto</button>
+  </div>
+
+  <!-- MODALE PERSONALIZZAZIONE -->
+  <div id="edit-modal" class="modal hidden" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="modal-content-wrapper">
+      <button id="close-modal" class="close-modal-btn" aria-label="Chiudi modale" type="button">&times;</button>
+      <div id="edit-form-container" class="modal-body-form"></div>
+    </div>
+  </div>
+
+  <!-- SCRIPT JS -->
+  <script type="module" src="scripts/pucciaria-app.js" defer></script>
+
+</body>
+</html>

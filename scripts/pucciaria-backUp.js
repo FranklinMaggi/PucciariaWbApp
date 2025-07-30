@@ -1,0 +1,1802 @@
+// =========================================================================
+// Pucciaria - Il Regno delle Pucce (Codice Serpentinato e Funzionante)
+// Questo file contiene tutta la logica e la gestione dell'interfaccia utente.
+// È ottimizzato per essere un singolo script autosufficiente.
+// =========================================================================
+import { pucciariaData } from "./data.js";
+// --- 1. Selezione degli Elementi DOM ---
+const catalogo_div = document.getElementById('catalogo-prodotti');
+const carrello_div = document.getElementById('carrello');
+const esito_div = document.getElementById('esito');
+const conferma_btn = document.getElementById('conferma-carrello');
+const modal = document.getElementById('edit-modal');
+const modal_close = document.getElementById('close-modal');
+const modal_form_container = document.getElementById('edit-form-container');
+const cookie_banner = document.getElementById('cookie-banner');
+const cookie_accept_btn = document.getElementById('cookie-accept-btn');
+const welcome_screen = document.getElementById('welcome-screen');
+const main_app = document.getElementById('main-app');
+const entra_menu_btn = document.getElementById('entra-menu-btn');
+
+// Recupera tutti i prodotti (puoi usare la tua funzione di aggregazione già esistente)
+function getAllProducts() {
+const items = [];
+
+// 1) Tutti i prodotti “prodotti_*”
+Object.entries(pucciariaData).forEach(([cat_key, cat_val]) => {
+    if (!cat_key.startsWith('prodotti_')) return;
+    Object.entries(cat_val).forEach(([sub_key, arr]) => {
+    if (!Array.isArray(arr)) return;
+    arr.forEach(prod => {
+        if (!prod || (!(prod.id || prod.nome))) return;
+        // prezzo prodotto: se è già number lo uso, altrimenti cerco di forzare a numero
+        const prezzoProd = typeof prod.prezzo === 'number'
+        ? prod.prezzo
+        : (parseFloat(prod.prezzo) || 0);
+
+        items.push({
+        ...prod,
+        prezzo: prezzoProd,
+        cat_key,
+        sub_key,
+        isExtra: sub_key.startsWith('extra_')
+        });
+    });
+    });
+});
+
+// 2) Tutti gli “extra” globali (ingredientiBaseGlobal)
+if (Array.isArray(pucciariaData.ingredientiBaseGlobal)) {
+    pucciariaData.ingredientiBaseGlobal.forEach(ing => {
+    if (!ing || !ing.id) return;
+    // determina il tipo di prodotto (puoi passarlo come argomento se serve)
+    const tipo = tipoProdottoFromCatKey('puccia');
+    // usa la tua funzione dedicata per il prezzo di aggiunta
+    const prezzoExtra = getPrezzoAggiuntaExtra(ing, tipo);
+    items.push({
+        ...ing,
+        prezzo: prezzoExtra,
+        cat_key: 'ingredientiBaseGlobal',
+        sub_key: 'extra',
+        isExtra: true
+    });
+    });
+}
+
+return items;
+}
+
+// Normalizzazione stringhe, rimozione diacritici
+const normalize = (str = '') => 
+    str.normalize('NFD')
+       .replace(/\p{Diacritic}/gu, '')
+       .toLowerCase()
+       .trim();
+  
+  // Parsing sicuro di numeri da stringhe o numeri
+  const parseNumber = value => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const n = parseFloat(value.replace(',', '.'));
+      return isNaN(n) ? 0 : n;
+    }
+    return 0;
+  };
+  
+  function getFlagExtraByProdotto(prod) {
+    // switch dinamico (puoi anche espandere in futuro)
+    if (!prod || typeof prod !== 'object') return 'extra_puccia';
+    switch ((prod.tipo || '').toLowerCase()) {
+      case 'pizza':  return 'extra_pizza';
+      case 'puccia': // fallthrough
+      case 'senza_puccia':
+      default:       return 'extra_puccia';
+    }
+  }
+  
+  // Prezzo per azioni (aggiungi/togli)
+  function getActionPrice(item, action = 'aggiungi', tipo = 'puccia') {
+    if (!item || !item.prezzo || typeof item.prezzo !== 'object') return 0;
+    const obj = item.prezzo[action];
+    return obj && obj[tipo] != null ? parseNumber(obj[tipo]) : 0;
+  }
+  
+  // Alias specifici
+  const getPrezzoAggiuntaExtra   = (item, tipo) => getActionPrice(item, 'aggiungi', tipo);
+  const getPrezzoRimozioneBase   = (item, tipo) => getActionPrice(item, 'togli',   tipo);
+  
+  // getExtraPrezzo ora usa sempre il prezzo di aggiunta extra
+  const getExtraPrezzo = getPrezzoAggiuntaExtra;
+  
+  // Tipo prodotto da chiave di categoria
+  function tipoProdottoFromCatKey(catKey = '') {
+    const key = catKey.toLowerCase();
+    return key.includes('pizza') ? 'pizza' : 'puccia';
+  }
+  
+  // Raggruppa ingredienti extra per tipo, escludendo quelli di base
+  function getExtraByCategoria(prodotto) {
+    const baseIds = new Set(
+      (prodotto.ingredienti_base || []).map(({ id }) => id)
+    );
+  
+    return pucciariaData.ingredientiBaseGlobal.reduce((acc, ing) => {
+      if (!baseIds.has(ing.id)) {
+        acc[ing.tipo] = acc[ing.tipo] || [];
+        acc[ing.tipo].push(ing);
+      }
+      return acc;
+    }, {});
+  }
+  function renderIngredientiBase(ingredienti = [], selected_ids = []) {
+    return ingredienti.map(ing => {
+      const selectedFromUser = Array.isArray(selected_ids) && selected_ids.length > 0;
+      const isChecked = selectedFromUser
+        ? selected_ids.includes(ing.id)
+        : ing.check_selected !== false;
+  
+      const checkedAttr  = isChecked ? 'checked' : '';
+      const disabledAttr = ing.modificabile === false ? 'disabled' : '';
+      const tipo = 'senza_puccia';
+      const prezzoExtra = getPrezzoAggiuntaExtra(ing, tipo);
+      const extraAttr = (!isChecked && prezzoExtra > 0)
+        ? `data-extra-senza-puccia="${prezzoExtra}"`
+        : '';
+  
+      const noteFisso = disabledAttr ? '<span style="color:#999;font-size:0.9em">(fisso)</span>' : '';
+  
+      return `
+        <label>
+          <input type="checkbox" name="ing-base" value="${ing.id}" ${checkedAttr} ${disabledAttr} ${extraAttr}>
+          ${ing.nome} ${noteFisso}
+        </label><br>`;
+    }).join('');
+  }
+  
+  
+  // Funzione di ricerca (nome, ingredienti base)
+  function searchProductsLocal(query) {
+    const q = normalize(query);
+    if (!q) return getAllProducts().filter(prod => prod.ingredienti_base);
+  
+    const prodotti = getAllProducts().filter(prod => Array.isArray(prod.ingredienti_base));
+  
+    const matchNome = [];
+    const matchIngredienti = [];
+    const matchTags = [];
+  
+    prodotti.forEach(prod => {
+      const nome = normalize(prod.nome || '');
+      const descrizione = normalize(prod.descrizione || '');
+      const ingredientiNomi = (prod.ingredienti_base || [])
+        .map(ing => normalize(mappa_ingredienti[ing.id]?.nome || ''))
+        .join(' ');
+  
+        const tags = Array.isArray(prod.tags) ? prod.tags.map(normalize) : [];
+
+      if (nome.includes(q) || descrizione.includes(q)) {
+        matchNome.push(prod);
+      } else if (ingredientiNomi.includes(q)) {
+        matchIngredienti.push(prod);
+      } else if (tags.some(tag => tag.includes(q))) {
+        matchTags.push(prod);
+      }
+    });
+  
+    // Ordine: nome → ingredienti → tag (senza duplicati)
+    const final = [
+      ...matchNome,
+      ...matchIngredienti.filter(p => !matchNome.includes(p)),
+      ...matchTags.filter(p => !matchNome.includes(p) && !matchIngredienti.includes(p))
+    ];
+  
+    return final;
+  }
+  
+  
+  
+  
+// All'inizio del file
+let sideCarrelloVisible = false;
+
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === "toggle-carrello-btn") {
+        sideCarrelloVisible = !sideCarrelloVisible;
+        carrello_div.classList.toggle('sidecarrello-visible', sideCarrelloVisible);
+    }
+});
+
+
+if (entra_menu_btn) {
+entra_menu_btn.addEventListener('click', () => {
+    if (welcome_screen) welcome_screen.style.display = 'none';
+    if (main_app) main_app.style.display = 'block';
+    window.scrollTo(0, 0);
+});
+}
+// Funzione per mostrare il banner dei cookie
+function mostra_cookie_banner() {
+if (!localStorage.getItem('cookie_accepted') && cookie_banner) {
+    cookie_banner.style.display = 'flex';
+    if (cookie_accept_btn) {
+        cookie_accept_btn.onclick = function() {
+            localStorage.setItem('cookie_accepted', 'yes');
+            cookie_banner.style.display = 'none';
+        };
+    }
+}
+}
+window.addEventListener('DOMContentLoaded', mostra_cookie_banner);
+
+// --- 2. Gestione dello Stato dell'Applicazione ---
+let carrello = [],
+categoria_attiva = "tutti",
+sottocategoria_attiva = "tutte";
+
+
+// ===== MAPPA INGREDIENTI BASE GLOBALE =====
+const mappa_ingredienti = {};
+if (Array.isArray(pucciariaData.ingredientiBaseGlobal)) {
+  pucciariaData.ingredientiBaseGlobal.forEach(ing => {
+    if (ing && ing.id) mappa_ingredienti[ing.id] = ing;
+  });
+}
+;
+// Listener per lo shrinking dell'header al scroll
+window.addEventListener('scroll', () => {
+const h = document.getElementById('app-internal-header');
+if (window.scrollY > 50) h.classList.add('shrink');
+else h.classList.remove('shrink');
+});
+
+// Calcola il prezzo finale di un prodotto tenendo conto degli ingredienti base rimossi e degli extra
+function calcola_prezzo_finale(prodotto, checked_base_ids = [], extra_ids = [], cat_key) {
+  let prezzo_base = prodotto.prezzo;
+  let tipoProdotto = tipoProdottoFromCatKey(cat_key);
+
+  // 1. Ingredienti base modificabili effettivi (checkbox)
+  const ib = (prodotto.ingredienti_base || []).map(ib => mappa_ingredienti[ib.id]).filter(Boolean);
+  const modificabili = ib.filter(ing => ing.modificabile !== false);
+
+  // 2. Sottrai il prezzo di rimozione SOLO degli ingredienti base tolti
+  let prezzo_sottratto = 0;
+  modificabili.forEach(ing => {
+      if (!checked_base_ids.includes(ing.id)) {
+          prezzo_sottratto += getPrezzoRimozioneBase(ing, tipoProdotto);
+      }
+  });
+
+  // 3. Somma il prezzo di aggiunta SOLO delle pillole extra attive
+  let prezzo_extra = 0;
+  if (Array.isArray(extra_ids)) {
+      extra_ids.forEach(id => {
+          let ex = mappa_ingredienti[id];
+          prezzo_extra += getPrezzoAggiuntaExtra(ex, tipoProdotto);
+      });
+  }
+
+  // 4. Calcola il prezzo finale
+  let finale = prezzo_base - prezzo_sottratto + prezzo_extra;
+  return finale > 0 ? +finale.toFixed(2) : 0;
+}
+
+
+
+// --- 3. Utilità per la Gestione della Memoria Locale (LocalStorage) ---
+function salva_in_local_storage(k, v) {
+if (localStorage.getItem('cookie_accepted')) localStorage.setItem(k, v);
+}
+
+function recupera_da_local_storage(k) {
+return localStorage.getItem('cookie_accepted') ? localStorage.getItem(k) : '';
+}
+
+const STORAGE_KEY = 'pucciaria-carrello-v1';
+
+function salva_carrello_local() {
+if (localStorage.getItem('cookie_accepted')) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(carrello));
+    } catch (e) {
+        console.error("Errore nel salvataggio del carrello in localStorage:", e);
+    }
+}
+}
+
+function carica_carrello_local() {
+if (localStorage.getItem('cookie_accepted')) {
+    try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        if (s) carrello = JSON.parse(s);
+    } catch (e) {
+        console.error("Errore nel caricamento del carrello da localStorage:", e);
+        carrello = []; // Resetta il carrello in caso di errore di parsing
+        svuota_carrello_local(); // Pulisce i dati corrotti
+    }
+}
+}
+
+function svuota_carrello_local() {
+localStorage.removeItem(STORAGE_KEY);
+}
+
+// Carica il carrello all'avvio dello script
+carica_carrello_local();
+render_carrello() ; 
+
+
+  
+// --- 4. Utilità Generali ---
+function get_categorie_prodotti() {
+return Object.keys(pucciariaData).filter(k =>
+    k.startsWith("prodotti_") && typeof pucciariaData[k] === "object" &&
+    Object.keys(pucciariaData[k]).some(subk => Array.isArray(pucciariaData[k][subk]) && pucciariaData[k][subk].length > 0)
+);
+}
+
+function get_label_categoria(k) {
+return k.replace('prodotti_', '').replace('_pucciaria', '').replace(/_/g, ' ').replace(/(^|\s)\S/g, l => l.toUpperCase());
+}
+
+function get_sottocategorie(cat_key) {
+if (!cat_key || !pucciariaData[cat_key] || typeof pucciariaData[cat_key] !== 'object') return [];
+return Object.keys(pucciariaData[cat_key]).filter(sub =>
+    !sub.startsWith('extra_') && Array.isArray(pucciariaData[cat_key][sub]) && pucciariaData[cat_key][sub].length > 0
+);
+}
+
+// --- 5. Funzioni di Rendering dell'Interfaccia Utente ---
+function render_categorie_tabs() {
+const c = document.getElementById('categorie-filtri');
+if (!c) return;
+const cat_keys = get_categorie_prodotti();
+let html = '';
+
+html+=`
+<div id="main-search-bar" style="display:flex;justify-content:center;width:100%;margin-bottom:10px;">
+      <input 
+        id="search-input" 
+        type="search" 
+        placeholder="Cerca un prodotto, ingrediente..." 
+        style="width: 340px; max-width: 80vw; font-size: 1.14em; border-radius: 1.3em; border:1.5px solid #ffe24b; padding: .6em 1.2em; box-shadow:0 2px 8px #ffe24b15;" 
+        autocomplete="off"
+      >
+<button class="tab-cat night-toggle${document.body.classList.contains('night') ? ' night' : ''}" type="button" id="nightmode-toggle">
+    <span class="icon-moon" style="font-size:1.15em;">${document.body.classList.contains('night') ? '☀️' : '🌙'}</span>
+    <span class="night-label" style="font-size:1em;">${document.body.classList.contains('night') ? 'Day' : 'Night'}</span>
+</button>
+    </div>
+`;
+html += `<button data-cat="tutti" class="tab-cat${categoria_attiva === 'tutti' ? ' active' : ''}">Tutte</button>`;
+cat_keys.forEach(k => {
+    html += `<button data-cat="${k}" class="tab-cat${categoria_attiva === k ? ' active' : ''}">${get_label_categoria(k)}</button>`;
+});
+c.innerHTML = html;
+html += `
+  <button 
+    class="tab-cat carrello-toggle-btn"
+    id="toggle-carrello-btn"
+    style="position:relative;display:flex;align-items:center;gap:0.4em;">
+    🛒
+    <span id="carrello-badge" style="background:#f8b30a;font-size:0.93em;padding:0.13em 0.68em;border-radius:1em;min-width:18px;text-align:center;">
+      ${carrello.length}
+    </span>
+  </button>
+`;
+// --- Handler NIGHT MODE ---
+// NIGHT MODE handler
+const nightBtn = c.querySelector('.night-toggle');
+if (nightBtn) {
+    nightBtn.onclick = function () {
+        // Inverti night mode
+        const nowNight = !document.body.classList.contains('night');
+        if (nowNight) {
+            document.body.classList.add('night');
+            localStorage.setItem('night_mode', 'yes');
+        } else {
+            document.body.classList.remove('night');
+            localStorage.setItem('night_mode', 'no');
+        }
+        // Rirenderizza tabs per aggiornare icona e testo
+        render_categorie_tabs();
+        render_sottocategorie_tabs();
+        render_catalogo(); // <-- AGGIUNGI QUESTO!
+    };
+}
+
+c.querySelectorAll('.tab-cat').forEach(btn => {
+    // NON attaccare event se è night-toggle!
+    if (!btn.classList.contains('night-toggle')) {
+        btn.addEventListener('click', function() {
+            categoria_attiva = this.getAttribute('data-cat');
+            sottocategoria_attiva = "tutte";
+            render_categorie_tabs();
+            render_sottocategorie_tabs();
+            render_catalogo();
+        });
+    }
+});
+/// Handler per search input
+const searchInput = document.getElementById('search-input');
+if (searchInput) {
+  // dark mode adattivo
+  if(document.body.classList.contains('night')) {
+    searchInput.style.background = '#23231b';
+    searchInput.style.color = 'var(--giallo-puggiaria)';
+    searchInput.style.borderColor = 'var(--giallo-puggiaria)';
+  }
+  searchInput.addEventListener('input', function () {
+    const q = this.value.trim();
+    if (!q) {
+      render_catalogo();
+      return;
+    }
+    const result = searchProductsLocal(q);
+    render_search_results(result);
+  });
+}
+}
+
+function render_sottocategorie_tabs() {
+  const d = document.getElementById('sottocategorie-filtri');
+if (!d) return;
+if (categoria_attiva === 'tutti') {
+    d.innerHTML = "";
+    sottocategoria_attiva = "tutte";
+    return;
+}
+
+
+  
+const sottocategorieList = get_sottocategorie(categoria_attiva);
+let html = `<button data-subcat="tutte" class="tab-subcat ${sottocategoria_attiva === 'tutte' ? 'active' : ''}">Tutte</button>`;
+sottocategorieList.forEach(sub => {
+    const label = sub.replace(/^pucce_/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    html += `<button data-subcat="${sub}" class="tab-subcat ${sottocategoria_attiva === sub ? 'active' : ''}">${label}</button>`;
+});
+d.innerHTML = html;
+d.querySelectorAll('.tab-subcat').forEach(btn => {
+    btn.addEventListener('click', function() {
+        sottocategoria_attiva = this.getAttribute('data-subcat');
+        render_sottocategorie_tabs();
+        render_catalogo();
+        if (catalogo_div) catalogo_div.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+}
+
+function get_descrizione_ingredienti(prodotto, checked_base_ids, active_pills) {
+  // ingredienti base definiti
+  const ib = (prodotto.ingredienti_base || []).map(ib => mappa_ingredienti[ib.id]).filter(Boolean);
+  const modificabili = ib.filter(ing => ing.modificabile !== false);
+
+  // Trova quelli rimossi
+  const rimossi = modificabili.filter(ing => !checked_base_ids.includes(ing.id));
+
+  // Trova gli extra (pills)
+  const extraNames = (active_pills || [])
+    .map(id => mappa_ingredienti[id]?.nome || id)
+    .filter(Boolean);
+
+  // Descrizione base
+  let parts = [];
+  if (rimossi.length) {
+    rimossi.forEach(ing => {
+      parts.push(`senza ${ing.nome}`);
+    });
+  }
+  if (extraNames.length) {
+    parts.push(`con aggiunta di ${extraNames.join(', ')}`);
+  }
+
+  // Se nessuna modifica, return vuoto
+  if (!parts.length) return '';
+
+  return parts.join(', ');
+}
+
+
+function render_search_results(products) {
+  if (!catalogo_div) return;
+
+  if (!products.length) {
+    catalogo_div.innerHTML = `<div style="padding:1.7em 0;text-align:center;font-size:1.13em">
+      Nessun prodotto trovato 😕
+    </div>`;
+    return;
+  }
+
+  const query = document.getElementById('search-input')?.value || '';
+  catalogo_div.innerHTML = `
+    <h3 class="cat-title">Risultati per: "<span style="color:#fab100">${query}</span>"</h3>
+    <div class="cards-column">
+      ${products.map(prod => {
+        const unique_id = prod.id || prod.nome;
+        const img_path = `./img/${unique_id}.jpeg`;
+
+        // === BEVANDE ===
+        if (prod.cat_key === 'prodotti_bevande' || prod.tipo === 'bevanda') {
+          return `
+            <div class="card card-side" data-id="${unique_id}" data-cat="${prod.cat_key}" data-subcat="${prod.sub_key}">
+              <div class="card-content">
+                <h2>${prod.nome}</h2>
+                <p>${prod.descrizione || ''}</p>
+                <p><b>${prod.prezzo.toFixed(2)} €</b></p>
+                <form class="bevanda-form" autocomplete="off">
+                  <div class="bevanda-qty-stepper">
+                    <button type="button" class="qty-minus">−</button>
+                    <input type="number" name="qty" min="1" max="99" value="1" class="bevanda-qty-input">
+                    <button type="button" class="qty-plus">+</button>
+                  </div>
+                  <button type="submit" class="carrello-btn">Aggiungi al carrello</button>
+                </form>
+              </div>
+              <div class="card-img-wrap">
+                <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
+              </div>
+            </div>
+          `;
+        }
+
+        // === PRODOTTI STANDARD ===
+        const ib = (prod.ingredienti_base || []).map(x => mappa_ingredienti[x.id]).filter(Boolean);
+        const modificabili = ib.filter(ing => ing.modificabile !== false);
+
+        const ingredients_html = renderIngredientiBase(modificabili, []);
+        const show_extra = (prod.cat_key === 'prodotti_senza_puccia' || prod.cat_key === 'prodotti_antipasti');
+
+        let extraBreadHTML = '';
+        if (show_extra) {
+          const ciccio = getAllProducts().find(p => p.id === 'ciccio-barese');
+          const puccia = getAllProducts().find(p => p.id === 'puccia-vuota');
+          if (ciccio) extraBreadHTML += renderMiniCardCiccioPuccia(ciccio, 'Ciccio');
+          if (puccia) extraBreadHTML += renderMiniCardCiccioPuccia(puccia, 'Puccia Vuota');
+        }
+        
+        return `
+          <div class="card card-side" data-id="${unique_id}" data-cat="${prod.cat_key}" data-subcat="${prod.sub_key}">
+            <div class="card-content">
+              <h2>${prod.nome}</h2>
+              <p>${prod.descrizione || ''}</p>
+              <p><b>${prod.prezzo.toFixed(2)} €</b></p>
+              <form class="quick-form" autocomplete="off">
+                <div class="quick-ingredients">
+                  ${ingredients_html}
+                </div>
+                <button type="submit" class="carrello-btn" style="margin-top:0.7em;">Aggiungi Rapido</button>
+                <button type="button" class="customize-btn" style="margin-top:0.5em;">Personalizza Extra</button>
+          
+                </form>
+                ${show_extra ? `
+  <p class="info-ciccio-msg" style="font-size: 0.92em; color: #a94442; margin-top: 0.8em;">
+    Non serviamo pane con i nostri <b>senza puccia</b> e <b>antipasti</b>.<br>
+    Se desideri del pane, puoi aggiungere al carrello un <b>Ciccio</b> o una <b>Puccia Vuota</b> qui sotto.
+  </p>
+` : ''}
+${extraBreadHTML}
+
+            </div>
+            <div class="card-img-wrap">
+              <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+
+
+
+// Funzione aggiornata: render_catalogo con mini-card ciccio/puccia al posto delle pills
+function render_catalogo() {
+  if (!catalogo_div) return;
+  catalogo_div.innerHTML = '';
+
+  Object.entries(pucciariaData).forEach(([cat_key, cat_val]) => {
+
+    if (!cat_key.startsWith('prodotti_')) return;
+    if (categoria_attiva !== "tutti" && cat_key !== categoria_attiva) return;
+  
+    Object.entries(cat_val).forEach(([sub_key, sub_val]) => {
+      if (sub_key.startsWith('extra_') || !Array.isArray(sub_val) || sub_val.length === 0) return;
+      if (sottocategoria_attiva !== "tutte" && sub_key !== sottocategoria_attiva) return;
+  
+
+  
+      const label = sub_key.replace(/^pucce_/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      catalogo_div.innerHTML += `<h3 class="cat-title">${label}</h3><div class="cards-column">`;
+
+      const products_html = sub_val.map(prod => {
+        if (!prod || !(prod.id || prod.nome)) return '';
+        const unique_id = prod.id || prod.nome;
+        const img_path = `./img/${unique_id}.jpeg`;
+
+        // === BEVANDE ===
+        if (cat_key === 'prodotti_bevande') {
+          return `
+            <div class="card card-side" data-id="${unique_id}" data-cat="${cat_key}" data-subcat="${sub_key}">
+              <div class="card-content">
+                <h2>${prod.nome}</h2>
+                <p>${prod.descrizione || ''}</p>
+                <p><b>${prod.prezzo.toFixed(2)} €</b></p>
+                <form class="bevanda-form" autocomplete="off">
+                  <div class="bevanda-qty-stepper">
+                    <button type="button" class="qty-minus">−</button>
+                    <input type="number" name="qty" min="1" max="99" value="1" class="bevanda-qty-input">
+                    <button type="button" class="qty-plus">+</button>
+                  </div>
+                  <button type="submit" class="carrello-btn">Aggiungi al carrello</button>
+                </form>
+              </div>
+              <div class="card-img-wrap">
+                <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
+              </div>
+            </div>
+          `;
+        }
+
+        // === PRODOTTI STANDARD ===
+        const ib = (prod.ingredienti_base || []).map(x => mappa_ingredienti[x.id]).filter(Boolean);
+        const modificabili = ib.filter(ing => ing.modificabile !== false);
+
+        const ingredients_html = renderIngredientiBase(modificabili, []);
+
+        const show_extra = (cat_key === 'prodotti_senza_puccia' || cat_key === 'prodotti_antipasti');
+
+        // Mini-card ciccio e puccia (al posto delle pills)
+        let extraBreadHTML = '';
+        if (show_extra) {
+          const ciccio = getAllProducts().find(p => p.id === 'ciccio-barese');
+          const puccia = getAllProducts().find(p => p.id === 'puccia-vuota');
+          if (ciccio) extraBreadHTML += renderMiniCardCiccioPuccia(ciccio, 'Ciccio');
+          if (puccia) extraBreadHTML += renderMiniCardCiccioPuccia(puccia, 'Puccia Vuota');
+        }
+
+        return `
+  <div class="card card-side" data-id="${unique_id}" data-cat="${cat_key}" data-subcat="${sub_key}">
+    <div class="card-content">
+      <h2>${prod.nome}</h2>
+      <p>${prod.descrizione || ''}</p>
+      <p><b><span class="card-prezzo" data-price-container>${prod.prezzo.toFixed(2)}</span> €</b></p>
+
+      <form class="quick-form" autocomplete="off">
+  <div class="quick-ingredients">
+    ${ingredients_html}
+  </div>
+  <button type="submit" class="carrello-btn" style="margin-top:0.7em;">Aggiungi Rapido</button>
+  <button type="button" class="customize-btn" style="margin-top:0.5em;">Personalizza Extra</button>
+</form>
+
+${(cat_key === 'prodotti_senza_puccia' || cat_key === 'prodotti_antipasti') ? `
+  <p class="info-ciccio-msg" style="font-size: 0.92em; color: #a94442; margin-top: 0.8em;">
+    Non serviamo pane con i nostri <b>senza puccia</b> e <b>antipasti</b>.<br>
+    Se desideri del pane, puoi aggiungere al carrello un <b>Ciccio</b> o una <b>Puccia Vuota</b> qui sotto.
+  </p>
+` : ''}
+
+${extraBreadHTML}
+
+    </div>
+    <div class="card-img-wrap">
+      <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
+    </div>
+  </div>`;
+      }).join('');
+
+      catalogo_div.innerHTML += products_html + `</div>`;
+    });
+  });
+}
+
+function renderMiniCardCiccioPuccia(prod, tipo = 'ciccio') {
+  const id = prod.id || prod.nome;
+  const img = `./img/${id}.jpeg`;
+  const base = (prod.ingredienti_base || []).map(x => mappa_ingredienti[x.id]).filter(Boolean);
+  const base_html = renderIngredientiBase(base, []);
+
+  return `
+    <div class="minicard-extrabread card-mini" data-id="${id}" data-cat="${prod.cat_key}" data-sub="${prod.sub_key}" data-pane="true">
+      
+      <h4>${prod.nome}</h4>
+      <form class="extrabread-form" autocomplete="off">
+        ${base_html}
+        <div class="bevanda-qty-stepper">
+          <button type="button" class="qty-minus">−</button>
+          <input type="number" name="qty" min="1" max="2" value="1" class="bevanda-qty-input">
+          <button type="button" class="qty-plus">+</button>
+        </div>
+        <button type="submit" class="carrello-btn" style="margin-top:0.5em;">Aggiungi al carrello</button>
+      </form>
+    </div>`;
+}
+
+function getExtraFlag(catKey = '') {
+  const key = (catKey || '').toLowerCase();
+  if (key.includes('pizza')) return 'extra_pizza';
+  if (key.includes('senza_puccia')) return 'extra_senza_puccia';
+  return 'extra_puccia';
+}
+
+// Render di pill extra organizzate per categoria con deduplica e compatibilità snake_case
+let extraPillsActiveCategory = null; // null = mostra categorie, se 'salse' mostra solo le pills di quella categoria
+function renderExtraPillSection(
+  extraObj,
+  baseIds = [],
+  selected = [],
+  cat_key = '',   // <-- passalo sempre!
+  categoriaAttiva = null
+) {
+  const extraFlag = getExtraFlag(cat_key);
+
+  if (!extraObj || typeof extraObj !== 'object') return '';
+
+  // STEP 1: Mostra solo CATEGORIE se nessuna attiva
+  if (!categoriaAttiva) {
+    const categorie = Object.keys(extraObj).filter(cat =>
+      Array.isArray(extraObj[cat]) && extraObj[cat].some(item =>
+        item[extraFlag] === true && !baseIds.includes(item.id || item.nome)
+      )
+    );
+    if (!categorie.length) return '';
+    return `
+      <div class="extra-pills-group">
+        ${categorie.map(cat => `
+          <span class="pill-cat" data-category="${cat}">
+            ${cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </span>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // STEP 2: Mostra PILLS della categoria selezionata
+  const items = (extraObj[categoriaAttiva] || []).filter(item =>
+    item[extraFlag] === true && !baseIds.includes(item.id || item.nome)
+  );
+  if (!items.length) return '<div class="extra-pills-group">Nessun ingrediente disponibile.</div>';
+
+  // Deduplica
+  const uniqueItems = Array.from(items.reduce((map, item) => {
+    const key = item.id || item.nome;
+    if (!map.has(key)) map.set(key, item);
+    return map;
+  }, new Map()).values());
+
+  // Calcola tipo prezzo dinamico
+  let tipoPrezzo = 'puccia';
+  if (cat_key && cat_key.includes('pizza')) tipoPrezzo = 'pizza';
+  else if (cat_key && cat_key.includes('senza_puccia')) tipoPrezzo = 'senza_puccia';
+
+  // Render pills degli ingredienti
+  return `
+    <div class="extra-pills-header">
+      <button type="button" class="pill-back" data-back="true">&larr; Indietro</button>
+      <span class="cat-title-mini">${categoriaAttiva.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+    </div>
+    <div class="extra-pills-group">
+      ${uniqueItems.map(item => {
+        const key = item.id || item.nome;
+        const prezzo = getPrezzoAggiuntaExtra(item, tipoPrezzo);
+        const prezzoTxt = prezzo > 0 ? ` (+${prezzo.toFixed(2)}€)` : '';
+        const activeClass = selected.includes(key) ? ' pill-active' : '';
+        return `
+          <span class="pill-extra${activeClass}" data-value="${key}" data-price="${prezzo}">
+             ${item.nome}${prezzoTxt}
+          </span>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+
+
+//handler
+// Dentro il modale o dove ti serve
+modal_form_container.addEventListener('click', function(e) {
+  // 1. Click su categoria → mostra pills di quella categoria
+  const catBtn = e.target.closest('.pill-cat');
+  if (catBtn) {
+    extraPillsActiveCategory = catBtn.dataset.category;
+    // Rirenderizza sezione extra
+    aggiornaExtraPillSection();
+    return;
+  }
+
+  // 2. Click su “indietro” → torna a categorie
+  if (e.target.classList.contains('pill-back')) {
+    extraPillsActiveCategory = null;
+    aggiornaExtraPillSection();
+    return;
+  }
+
+  // 3. Click su una pill extra → attiva/disattiva + aggiorna prezzo
+  const pill = e.target.closest('.pill-extra');
+  if (pill) {
+    pill.classList.toggle('pill-active');
+    if (typeof updateModalPrice === "function") updateModalPrice();
+  }
+});
+
+function aggiornaExtraPillSection() {
+  const form = modal_form_container.querySelector('form.customize-form');
+  if (!form) return;
+  const prodottoId = form.dataset.prodId;
+  const catKey = form.dataset.catKey;
+  const subKey = form.dataset.subKey;
+  // Trova il prodotto corrente (prendi da dati globali)
+  const prodotto = pucciariaData[catKey]?.[subKey]?.find(p => (p.id || p.nome) == prodottoId);
+  if (!prodotto) return;
+  const ib = (prodotto.ingredienti_base || []).map(x => x.id).filter(Boolean);
+  const extraSel = Array.from(form.querySelectorAll('.pill-extra.pill-active')).map(el => el.dataset.value);
+
+  // Qui aggiorni solo la sezione extra (puoi anche passare altri parametri)
+  form.querySelector('.extra-pills-container').innerHTML =
+  renderExtraPillSection(
+    getExtraByCategoria(prodotto),
+    ib,
+    extraSel,
+    catKey,
+    extraPillsActiveCategory
+  );
+}
+
+
+function wrap_with_close_overlay(html_content) {
+return `<button type="button" class="btn-close-modal-overlay" aria-label="Chiudi modale" tabindex="0" hidden></button><div class="modal-card-content" style="position:relative;z-index:3;">${html_content}</div>`;
+}
+
+function chiudi_modale() {
+if (!modal) return;
+modal.classList.add('hidden');
+document.body.classList.remove('modal-open');
+render_catalogo();
+}
+['click', 'touchstart'].forEach(ev => {
+    if (modal) {
+        modal.addEventListener(ev, e => {
+            if (e.target === modal) chiudi_modale();
+        }, { passive: true });
+    }
+  });
+  
+
+if (modal_close) modal_close.addEventListener('click', chiudi_modale);
+document.addEventListener('keydown', e => {
+if (e.key === "Escape") chiudi_modale();
+});
+
+function render_personalizza_form(prodotto, cat_key, sub_key, editing_index = null, selected_state = {}) {
+  let ib = [], ibi = [];
+  if (prodotto.ingredienti_base) {
+    ib  = prodotto.ingredienti_base.map(x => mappa_ingredienti[x.id]).filter(Boolean);
+    ibi = prodotto.ingredienti_base.map(x => x.id).filter(Boolean);
+  }
+
+  // Extra globali raggruppati per categoria (es: salse, verdure, ecc.)
+  const extra_cat = getExtraByCategoria(prodotto);
+
+  // Se lo stato non è stato passato (es. prima apertura), preimposta i base selezionabili
+  if (!Array.isArray(selected_state.base)) {
+    selected_state.base = [];
+  }
+  if (selected_state.base.length === 0 && selected_state._source !== 'card') {
+    selected_state.base = ib.filter(i => i.modificabile !== false && i.check_selected !== false).map(i => i.id);
+  }
+  selected_state.extra = selected_state.extra || [];
+  const ingredients_html = renderIngredientiBase(ib, selected_state.base);
+
+  // Costruzione HTML del form
+  return `
+    <form class="customize-form"
+          data-prod-id="${prodotto.id || prodotto.nome}"
+          data-cat-key="${cat_key}"
+          data-sub-key="${sub_key}"
+          autocomplete="off">
+
+      <div class="modal-price">
+        Prezzo: <span id="modal-prezzo">${prodotto.prezzo.toFixed(2)}</span> €
+      </div>
+
+      <b>Ingredienti base:</b><br>
+     ${renderIngredientiBase(ib, selected_state.base)}
+
+      <br><b>Extra:</b>
+      <div class="extra-pills-container">
+        ${renderExtraPillSection(extra_cat, ibi, selected_state.extra, cat_key, extraPillsActiveCategory)}
+      </div>
+
+      <br>
+      <button type="submit" class="carrello-btn">
+        ${editing_index !== null ? 'Salva Modifiche' : 'Aggiungi al carrello'}
+      </button>
+    </form>
+  `;
+}
+
+  
+/**
+ * Ricalcola e aggiorna il prezzo nella modale
+ */
+function updateModalPrice() {
+  const form = modal_form_container.querySelector('form.customize-form');
+  if (!form) return;
+
+  const prodId = form.dataset.prodId;
+  const catKey = form.dataset.catKey;
+  const subKey = form.dataset.subKey;
+  const prodotto = pucciariaData[catKey]?.[subKey]?.find(p => (p.id || p.nome) == prodId);
+  if (!prodotto) return;
+
+  // leggi le selezioni correnti
+  const baseSel  = Array.from(form.querySelectorAll('input[name="ing-base"]:checked'))
+                        .map(cb => cb.value);
+  const extraSel = Array.from(form.querySelectorAll('.pill-extra.pill-active'))
+                        .map(el => el.dataset.value);
+
+  // calcola prezzo
+  const newPrice = calcola_prezzo_finale(prodotto, baseSel, extraSel, catKey);
+
+  // aggiorna lo span
+  const span = form.querySelector('#modal-prezzo');
+  if (span) span.textContent = newPrice.toFixed(2);
+}
+
+/**
+ * Attacca i listener sulle checkbox e sulle pill-extra
+ */
+function attachModalPriceListeners() {
+  const form = modal_form_container.querySelector('form.customize-form');
+  if (!form) return;
+
+  form.querySelectorAll('input[name="ing-base"]').forEach(input => {
+    input.addEventListener('change', updateModalPrice);
+  });
+
+  form.querySelectorAll('.pill-extra').forEach(el => {
+    el.addEventListener('click', updateModalPrice);
+  });
+}
+
+
+/**
+ * Apre la modale di personalizzazione, renderizza il form e abilita il live‐update prezzo
+ */
+function openCustomizeModal(prodotto, cat_key, sub_key, selected_state = { base: [], extra: [] }) {
+  modal_form_container.innerHTML = wrap_with_close_overlay(`
+    <h2>${prodotto.nome}</h2>
+    <div class="modal-price">
+      Prezzo: <span id="modal-prezzo">${prodotto.prezzo.toFixed(2)}</span> €
+    </div>
+    ${render_personalizza_form(prodotto, cat_key, sub_key, null, selected_state)}
+  `);
+
+  modal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  
+  attachModalPriceListeners();
+  updateModalPrice();
+
+  // **GESTIONE SUBMIT**
+  const form = modal_form_container.querySelector('form.customize-form');
+  if (form) {
+    form.onsubmit = function(ev) {
+      ev.preventDefault();
+
+      // Ingredienti base selezionati
+      const baseSel  = Array.from(form.querySelectorAll('input[name="ing-base"]:checked')).map(cb=>cb.value);
+
+      // Pillole extra attive
+      const extraSel = Array.from(form.querySelectorAll('.pill-extra.pill-active')).map(el=>el.dataset.value);
+
+      // Trova il prodotto (con id giusto)
+      const prodId = form.dataset.prodId;
+      const cKey   = form.dataset.catKey;
+      const sKey   = form.dataset.subKey;
+      const prodotto = pucciariaData[cKey][sKey].find(p=>(p.id||p.nome)==prodId);
+
+      // Calcola prezzo finale
+      const prezzo = calcola_prezzo_finale(prodotto, baseSel, extraSel, cKey);
+
+      // Costruisci descrizione dinamica
+      const descrizione = get_descrizione_ingredienti(prodotto, baseSel, extraSel);
+
+      // Aggiungi al carrello
+      addToCart({
+        prodotto,
+        cat: cKey,
+        sub: sKey,
+        qty: 1,
+        base: baseSel,
+        extra: extraSel,
+        descrizione,
+        prezzo
+      });
+
+      chiudi_modale();
+    };
+  }
+}
+
+
+catalogo_div.addEventListener('click', handleCatalogClick);
+catalogo_div.addEventListener('submit', handleCatalogSubmit);
+catalogo_div.addEventListener('change', function (e) {
+  if (!e.target.matches('input[name="ing-base"]')) return;
+
+  const form = e.target.closest('form.quick-form');
+  const card = form.closest('.card');
+  if (!card) return;
+  const id = card.dataset.id;
+  const cat = card.dataset.cat;
+  const sub = card.dataset.subcat;
+
+  const prodotto = pucciariaData[cat]?.[sub]?.find(p => (p.id || p.nome) == id);
+  if (!prodotto) return;
+
+  const tipoProd = tipoProdottoFromCatKey(cat);
+
+  // 1. Ingredienti selezionati
+  const baseSel = Array.from(form.querySelectorAll('input[name="ing-base"]:checked'))
+                       .map(cb => cb.value);
+
+  // 2. Ingredienti base modificabili
+  const ib = (prodotto.ingredienti_base || [])
+              .map(x => mappa_ingredienti[x.id])
+              .filter(Boolean);
+  const mod_ids = ib.filter(ing => ing.modificabile !== false).map(ing => ing.id);
+
+  // 3. Calcola prezzo: togli base rimossi, somma extra_senza_puccia
+  let prezzo = parseFloat(prodotto.prezzo) || 0;
+
+  mod_ids.forEach(id => {
+    if (!baseSel.includes(id)) {
+      const ing = mappa_ingredienti[id];
+      prezzo -= getPrezzoRimozioneBase(ing, tipoProd);
+    }
+  });
+
+  form.querySelectorAll('input[name="ing-base"]:checked').forEach(cb => {
+    const extra = cb.dataset.extraSenzaPuccia;
+    if (extra) prezzo += parseFloat(extra);
+  });
+
+  // 4. Aggiorna prezzo nella card
+  const prezzoEl = card.querySelector('[data-price-container]');
+  if (prezzoEl) prezzoEl.textContent = prezzo.toFixed(2);
+});
+
+
+function handleCatalogClick(e) {
+  const tgt = e.target;
+  // STEP + / – bevande
+  if (tgt.classList.contains('qty-plus') || tgt.classList.contains('qty-minus')) {
+    const input = tgt.closest('.bevanda-qty-stepper').querySelector('.bevanda-qty-input');
+    let v = parseInt(input.value, 10) || 1;
+    v = tgt.classList.contains('qty-plus') ? Math.min(99, v + 1) : Math.max(1, v - 1);
+    input.value = v;
+    return;
+  }
+
+  // PERSONALIZZA → apri modale
+  if (tgt.classList.contains('customize-btn')) {
+    const card = tgt.closest('.card');
+    const id     = card.dataset.id;
+    const cat    = card.dataset.cat;
+    const sub    = card.dataset.subcat;
+    // trova prodotto (prima fallback)
+    let prodotto = pucciariaData[cat]?.[sub]?.find(p => (p.id||p.nome)==id);
+    if (!prodotto) {
+      outer: for (let c in pucciariaData) {
+        if (!c.startsWith('prodotti_')) continue;
+        for (let s in pucciariaData[c]) {
+          if (!Array.isArray(pucciariaData[c][s])) continue;
+          const f = pucciariaData[c][s].find(p=> (p.id||p.nome)==id);
+          if (f) { prodotto=f; cat=c; sub=s; break outer; }
+        }
+      }
+    }
+    if (!prodotto) return alert("Prodotto non trovato.");
+    // estrai base selezionate
+    const baseSel = Array.from(card.querySelectorAll('input[name="ing-base"]:checked'))
+                         .map(cb=>cb.value);
+                         openCustomizeModal(prodotto, cat, sub, { base: baseSel, extra: [], _source: 'card' });
+
+  }
+  // GESTIONE bottone "aggiungi ciccio / puccia-vuota"
+  if (tgt.classList.contains('aggiungi-ciccio-btn')) {
+    const id_extra = tgt.dataset.aggiungiId;
+    const ingrediente = getAllProducts().find(p => (p.id || p.nome) === id_extra);
+
+    if (!ingrediente) return alert("Ingrediente non trovato.");
+
+    const prezzo = getPrezzoAggiuntaExtra(ingrediente, 'senza_puccia');
+    const descrizione = `aggiunta di ${ingrediente.nome}`;
+
+    addToCart({
+      prodotto: { id: id_extra, nome: ingrediente.nome },
+      cat: ingrediente.cat_key || 'prodotti_pizze',
+      sub: ingrediente.sub_key || 'autentiche_panificazioni',
+      qty: 1,
+      base: [],
+      extra: [],
+      descrizione,
+      prezzo
+    });
+    return;
+  }
+
+
+}
+
+function handleCatalogSubmit(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+
+  // === MINI-CARD: CICCO / PUCCIA-VUOTA ===
+  if (form.classList.contains('extrabread-form')) {
+    const card = form.closest('.minicard-extrabread');
+    if (!card) return;
+    const id = card.dataset.id;
+    const cat = card.dataset.cat;
+    const sub = card.dataset.sub;
+
+    const prodotto = getAllProducts().find(p => (p.id || p.nome) === id);
+    if (!prodotto) return;
+
+    const qtyInput = form.querySelector('input[name="qty"]');
+    const qty = Math.min(2, Math.max(1, parseInt(qtyInput?.value, 10) || 1));
+     const baseSel = Array.from(form.querySelectorAll('input[name="ing-base"]:checked')).map(cb => cb.value);
+    const prezzo = calcola_prezzo_finale(prodotto, baseSel, [], cat);
+
+    addToCart({ prodotto, cat, sub, qty, base: baseSel, extra: [], descrizione: '', prezzo });
+    return;
+  }
+
+  const card = form.closest('.card');
+  if (!card) return;
+  const id   = card.dataset.id;
+  const cat  = card.dataset.cat;
+  const sub  = card.dataset.subcat;
+
+  // === BEVANDE ===
+  if (form.classList.contains('bevanda-form')) {
+    const prodotto = pucciariaData[cat][sub].find(p => (p.id || p.nome) === id);
+    if (!prodotto) return;
+    let qty = parseInt(form.qty.value, 10);
+    if (isNaN(qty) || qty < 1) qty = 1;
+    addToCart({ prodotto, cat, sub, qty, base: [], extra: [] });
+    return;
+  }
+
+  // === QUICK-ADD ===
+  if (form.classList.contains('quick-form')) {
+    const prodotto = pucciariaData[cat][sub].find(p => (p.id || p.nome) === id);
+    if (!prodotto) return;
+
+    let prezzo = parseFloat(prodotto.prezzo) || 0;
+    const baseSel = Array.from(form.querySelectorAll('input[name="ing-base"]:checked')).map(cb => cb.value);
+
+    form.querySelectorAll('input[name="ing-base"]:checked').forEach(cb => {
+      const extra = cb.dataset.extraSenzaPuccia;
+      if (extra) prezzo += parseFloat(extra);
+    });
+
+    const descrizione = get_descrizione_ingredienti(prodotto, baseSel, []);
+
+    addToCart({ prodotto, cat, sub, qty: 1, base: baseSel, extra: [], descrizione, prezzo: +prezzo.toFixed(2) });
+
+    // Se pill attiva (vecchio sistema), aggiunge ciccio o puccia separati
+    const pillAttiva = form.querySelector('.pill-extra.pill-active');
+    const extraId = pillAttiva?.dataset.aggiuntaId || pillAttiva?.dataset.value;
+    const extraProdotto = extraId ? getAllProducts().find(p => (p.id || p.nome) === extraId) : null;
+
+    if (extraProdotto) {
+      const prezzoExtra = getPrezzoAggiuntaExtra(extraProdotto, 'senza_puccia');
+      addToCart({
+        prodotto: extraProdotto,
+        cat: extraProdotto.cat_key || 'prodotti_pizze',
+        sub: extraProdotto.sub_key || 'panificazioni_autentiche',
+        qty: 1,
+        base: [],
+        extra: [],
+        descrizione: '',
+        prezzo: prezzoExtra
+      });
+    }
+    return;
+  }
+
+  // === PERSONALIZZAZIONE DA MODALE ===
+  if (form.classList.contains('customize-form')) {
+    const prodId = form.dataset.prodId;
+    const cKey   = form.dataset.catKey;
+    const sKey   = form.dataset.subKey;
+    const prodotto = pucciariaData[cKey][sKey].find(p => (p.id || p.nome) === prodId);
+    if (!prodotto) return;
+
+    const tipoProd = tipoProdottoFromCatKey(cKey);
+    const baseSel = Array.from(form.querySelectorAll('input[name="ing-base"]:checked')).map(cb => cb.value);
+    const modBaseIds = (prodotto.ingredienti_base || [])
+      .map(x => x.id)
+      .filter(id => mappa_ingredienti[id].modificabile !== false);
+
+    const extraPillIds = Array.from(form.querySelectorAll('.pill-extra.pill-active')).map(el => el.dataset.value);
+
+    let prezzo = parseFloat(prodotto.prezzo) || 0;
+
+    modBaseIds.forEach(id => {
+      if (!baseSel.includes(id)) {
+        const ing = mappa_ingredienti[id];
+        prezzo -= getPrezzoRimozioneBase(ing, tipoProd);
+      }
+    });
+
+    form.querySelectorAll('input[name="ing-base"]:checked').forEach(cb => {
+      const extra = cb.dataset.extraSenzaPuccia;
+      if (extra) prezzo += parseFloat(extra);
+    });
+
+    extraPillIds.forEach(id => {
+      const ing = mappa_ingredienti[id];
+      prezzo += getPrezzoAggiuntaExtra(ing, tipoProd);
+    });
+
+    const descrizione = get_descrizione_ingredienti(prodotto, baseSel, extraPillIds);
+    addToCart({
+      prodotto,
+      cat: cKey,
+      sub: sKey,
+      qty: 1,
+      base: baseSel,
+      extra: extraPillIds,
+      descrizione,
+      prezzo: +prezzo.toFixed(2)
+    });
+
+    chiudi_modale();
+    return;
+  }
+}
+function sonoUgualiProdotti(a, b) {
+  // Confronto rapido per prodotti semplici: solo id e prezzo
+  const isSemplice = a.cat_key === 'prodotti_bevande' || b.cat_key === 'prodotti_bevande' ||
+                     a.tipo === 'bevanda' || b.tipo === 'bevanda';
+
+  if (isSemplice) {
+    return a.id === b.id && a.prezzo === b.prezzo;
+  }
+
+  const sortJSON = arr => JSON.stringify((arr || []).slice().sort());
+
+  return (
+    a.id === b.id &&
+    a.prezzo === b.prezzo &&
+    sortJSON(a.base) === sortJSON(b.base) &&
+    sortJSON(a.extra) === sortJSON(b.extra) &&
+    (a.ingredienti || '') === (b.ingredienti || '')
+  );
+}
+
+
+
+// helper di astrazione: aggiunge o somma quantità nel carrello
+function addToCart({ prodotto, cat, sub, qty, base, extra, descrizione = '', prezzo }) {
+  const id = prodotto.id || prodotto.nome;
+  base = base || [];
+  extra = extra || [];
+  descrizione = descrizione || '';
+
+  let item;
+  if (cat === 'prodotti_bevande') {
+    // Sommatoria semplificata per bevande: solo per ID
+    item = carrello.find(it => it.id === id && it.cat_key === cat && it.sub_key === sub);
+  } else {
+    item = carrello.find(it => sonoUgualiProdotti(it, {
+      id, base, extra, prezzo, ingredienti: descrizione
+    }));
+  }
+  
+
+  if (item) item.qty += qty;
+  else carrello.push({
+    id,
+    nome: prodotto.nome,
+    cat_key: cat,
+    sub_key: sub,
+    qty,
+    base,
+    extra,
+    ingredienti: descrizione,
+    prezzo: prezzo === undefined ? prodotto.prezzo : +prezzo.toFixed(2),
+    tipo: prodotto.tipo // utile per semplificare confronto futuri
+  });
+
+  salva_carrello_local();
+  render_carrello();
+  updateCarrelloBadge();
+
+  if (window.innerWidth <= 700) {
+    carrello_div.classList.add('sidecarrello-visible');
+    clearTimeout(window._carrelloTimeout);
+    window._carrelloTimeout = setTimeout(() => {
+      carrello_div.classList.remove('sidecarrello-visible');
+    }, 3000);
+  }
+
+  if (cat === 'prodotti_senza_puccia' || cat === 'prodotti_antipasti') {
+    mostra_extra_pane();
+  }
+}
+
+
+
+
+function updateCarrelloBadge() {
+  const badge = document.getElementById('carrello-badge');
+  if (badge) badge.textContent = carrello.reduce((s, x) => s + x.qty, 0);
+}
+// inserisci queste tre funzioni subito dopo aver definito `openCustomizeModal` e `handle_edit_carrello`. 
+
+
+function ordina_carrello(ca) {
+return ca.slice().sort((a, b) => {
+    const is_polpo_a = (a.nome?.toLowerCase().includes('polpo')) || (a.sub_key?.toLowerCase().includes('polpo'));
+    const is_polpo_b = (b.nome?.toLowerCase().includes('polpo')) || (b.sub_key?.toLowerCase().includes('polpo'));
+    if (is_polpo_a && !is_polpo_b) return -1;
+    if (!is_polpo_a && is_polpo_b) return 1;
+    return 0;
+});
+}
+
+function render_carrello() {
+  if (!carrello_div) return;
+
+  // 1. CARRELLO VUOTO
+  if (!carrello.length) {
+    const contenuto = document.getElementById('carrello-contenuto');
+    if (contenuto) {
+      contenuto.innerHTML = `
+        <div id="carrello-immagine">
+          <img src="./img/order-a-take-away.jpg" alt="Busta della spesa">
+        </div>
+        <br><i>Carrello vuoto</i>
+        <button id="close-carrello-btn" class="carrello-btn full-width secondary">
+          Chiudi carrello
+        </button>
+      `;
+    }
+    svuota_carrello_local();
+    aggiornaBadge();
+    return;
+  }
+  
+
+  // 2. RENDER ITEM
+  const itemsHtml = ordina_carrello(carrello).map((item, i) => {
+    const tot = (item.prezzo * item.qty).toFixed(2);
+    const desc = item.ingredienti ? ` (${item.ingredienti})` : '';
+    return `
+      <div class="carrello-item">
+        <div><b>${item.qty}× ${item.nome}</b>${desc}</div>
+        <div><b>${tot}€</b></div>
+        <div class="item-actions">
+          <button class="qty-minus" data-index="${i}" aria-label="–">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-plus"  data-index="${i}" aria-label="+">+</button>
+          <button class="edit-btn"   data-index="${i}" aria-label="Modifica">✏️</button>
+          <button class="remove-btn" data-index="${i}" aria-label="Rimuovi">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // 3. AZIONI FINALI (CONFERMA + CHIUDI)
+  document.getElementById('carrello-contenuto').innerHTML = `
+  <div id="carrello-immagine">
+    <img src="./img/order-a-take-away.jpg" alt="Busta della spesa">
+  </div>
+  ${itemsHtml}
+  <button id="carrello-conferma-btn" class="carrello-btn full-width">
+    Conferma ordine
+  </button>
+  <button id="svuota-carrello-btn" class="carrello-btn full-width danger">
+    🗑️ Svuota carrello
+  </button>
+  <button id="close-carrello-btn" class="carrello-btn full-width secondary">
+    Chiudi carrello
+  </button>
+`;
+
+
+ // 4. EVENTI + / – / EDIT / REMOVE / CHIUDI / CONFERMA / SVUOTA
+carrello_div.onclick = e => {
+  const i = Number(e.target.dataset.index);
+
+  if (e.target.classList.contains('qty-plus')) {
+    carrello[i].qty++;
+  } else if (e.target.classList.contains('qty-minus')) {
+    if (carrello[i].qty > 1) carrello[i].qty--;
+    else carrello.splice(i, 1);
+  } else if (e.target.classList.contains('remove-btn')) {
+    carrello.splice(i, 1);
+  } else if (e.target.classList.contains('edit-btn')) {
+    const item = carrello[i];
+    const p_o = pucciariaData[item.cat_key]?.[item.sub_key]?.find(p => (p.id || p.nome) == item.id);
+    if (!p_o) return;
+
+    if (item.qty > 1) {
+      item.qty--;
+      carrello.splice(i + 1, 0, { ...item, qty: 1 });
+      salva_carrello_local();
+      render_carrello();
+      apri_modifica_riga(i + 1, p_o);
+    } else {
+      apri_modifica_riga(i, p_o);
+    }
+    return;
+  } else if (e.target.id === 'carrello-conferma-btn') {
+    document.getElementById('conferma-carrello').click();
+    carrello_div.classList.remove('sidecarrello-visible');
+    // Scrolla al riepilogo ordine (esito)
+  const esito = document.getElementById('esito');
+  if (esito) {
+    setTimeout(() => {
+      esito.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300); // un leggero delay per sicurezza
+  }
+return;
+  } else if (e.target.id === 'close-carrello-btn') {
+    carrello_div.classList.remove('sidecarrello-visible');
+    return;
+  } else if (e.target.id === 'svuota-carrello-btn') {
+    // 🧹 Svuota completamente il carrello
+    carrello = [];
+    svuota_carrello_local();
+    render_carrello();
+    return;
+  }
+
+  salva_carrello_local();
+  render_carrello();
+};
+
+}
+
+// --- Badge aggiornamento automatico
+function aggiornaBadge() {
+  const badge = document.getElementById('carrello-badge');
+  if (badge) {
+    const count = carrello.reduce((s, x) => s + x.qty, 0);
+    badge.textContent = count > 0 ? count : '';
+  }
+}
+
+// Funzione helper: apre il modale modifica per una riga specifica
+function apri_modifica_riga(i, prodotto_originale) {
+  const item = carrello[i];
+  const selected_state = {
+    base: item.base || [],
+    extra: item.extra || []
+  };
+
+  const titolo = `<h2>Modifica ${item.nome}</h2>`;
+  const prezzoBase = `<p><b>Prezzo base: ${prodotto_originale.prezzo.toFixed(2)} €</b></p>`;
+  const formHTML = render_personalizza_form(prodotto_originale, item.cat_key, item.sub_key, i, selected_state);
+
+  modal_form_container.innerHTML = wrap_with_close_overlay(`${titolo}${prezzoBase}${formHTML}`);
+  modal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+
+  const btn_overlay = modal_form_container.querySelector('.btn-close-modal-overlay');
+  if (btn_overlay) btn_overlay.onclick = chiudi_modale;
+
+  const form = modal_form_container.querySelector('form');
+  if (form) {
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      handle_edit_carrello(ev, i, prodotto_originale);
+    };
+  }
+
+  updateModalPrice();
+  attachModalPriceListeners();
+}
+
+function handle_edit_carrello(ev, i, prodotto_originale) {
+  const form = ev.target;
+  const catKey = carrello[i].cat_key;
+
+  const checked_base_ids = Array.from(form.querySelectorAll('input[name="ing-base"]:checked'))
+    .map(input => input.value);
+
+  const active_pills = Array.from(form.querySelectorAll('.pill-extra.pill-active'))
+    .map(span => span.dataset.value);
+
+  const descrizione = get_descrizione_ingredienti(prodotto_originale, checked_base_ids, active_pills);
+  const prezzo_finale = calcola_prezzo_finale(prodotto_originale, checked_base_ids, active_pills, catKey);
+  const prezzoRounded = +prezzo_finale.toFixed(2);
+  const qty_corrente = carrello[i].qty || 1;
+
+  // Verifica se già esiste una riga identica (escludi la riga attuale)
+  const rigaIdentica = carrello.find((item, idx) =>
+    idx !== i &&
+    item.id === (prodotto_originale.id || prodotto_originale.nome) &&
+    JSON.stringify(item.base?.sort()) === JSON.stringify(checked_base_ids.slice().sort()) &&
+    JSON.stringify(item.extra?.sort()) === JSON.stringify(active_pills.slice().sort()) &&
+    item.prezzo === prezzoRounded &&
+    item.ingredienti === descrizione
+  );
+
+  if (rigaIdentica) {
+    rigaIdentica.qty += qty_corrente;
+    carrello.splice(i, 1); // Rimuovi la riga modificata
+  } else {
+    carrello[i] = {
+      ...carrello[i],
+      prezzo: prezzoRounded,
+      ingredienti: descrizione,
+      base: checked_base_ids,
+      extra: active_pills
+    };
+  }
+
+  salva_carrello_local();
+  chiudi_modale();
+  render_carrello();
+}
+
+
+
+let fase_carrello = 0;
+if (conferma_btn) {
+conferma_btn.onclick = () => {
+    if (!carrello.length) {
+        esito_div.innerHTML = "<b>Carrello vuoto 😅</b>";
+        fase_carrello = 0;
+        return;
+    }
+    if (fase_carrello === 0) {
+        let riepilogo = carrello.map(item => `<li>${item.qty}x ${item.nome} ${item.ingredienti?`(${item.ingredienti})`:''} = <b>${(item.prezzo*item.qty).toFixed(2)}€</b></li>`).join('');
+        let totale = carrello.reduce((acc, item) => acc + item.prezzo * item.qty, 0).toFixed(2);
+        let nome_cliente_salvato = recupera_da_local_storage('nome_cliente') || '';
+        esito_div.innerHTML = `
+            <b>Riepilogo ordine:</b>
+            <ul style="margin:1em 0">${riepilogo}</ul>
+            <div style="font-size:1.15em;margin-bottom:1.2em"><b>TOTALE: ${totale}€</b></div>
+            <form id="ordine-dati-form" class="ordine-form">
+                <input name="nome_cliente" autocomplete="given-name" placeholder="Il tuo nome" required value="${nome_cliente_salvato}" style="width:99%;margin-bottom:0.8em;font-size:1em;padding:0.7em;border-radius:1em;border:1px solid #ffe24b;">
+                <select name="orario" required style="width:99%;margin-bottom:0.8em;font-size:1em;padding:0.7em;border-radius:1em;border:1px solid #ffe24b;">
+                    <option value="" disabled selected>Seleziona orario</option>
+                    <option value="12:30">12:30</option>
+                    <option value="13:00">13:00</option>
+                    <option value="13:30">13:30</option>
+                    <option value="20:00">20:00</option>
+                    <option value="20:30">20:30</option>
+                    <option value="21:00">21:00</option>
+                </select>
+                <select name="servizio" required style="width:99%;margin-bottom:1.3em;font-size:1em;padding:0.7em;border-radius:1em;border:1px solid #ffe24b;">
+                    <option value="" disabled selected>Modalità</option>
+                    <option value="da portare via">Da portare via</option>
+                    <option value="mangiamo sul posto">Mangiamo sul posto</option>
+                </select>
+                <button type="submit" class="carrello-btn">Invia Ordine via WhatsApp</button>
+            </form>
+            <div style="margin-top:.8em">
+                <button id="annulla-form-btn" style="background:#fff;color:var(--nero-fume);border:1.5px solid var(--giallo-puggiaria);border-radius:1em;padding:0.6em 1.3em;font-size:1em;cursor:pointer">Annulla</button>
+            </div>
+        `;
+        const annulla_btn = document.getElementById('annulla-form-btn');
+        if (annulla_btn) {
+            annulla_btn.onclick = () => {
+                fase_carrello = 0;
+                esito_div.innerHTML = "";
+            };
+        }
+        const ordine_form = document.getElementById('ordine-dati-form');
+        if (ordine_form) {
+            ordine_form.onsubmit = function(ev) {
+                ev.preventDefault();
+                const f = ev.target,
+                    nome_cliente = f.nome_cliente.value.trim();
+                salva_in_local_storage('nome_cliente', nome_cliente);
+                const orario_scelto = f.orario.value,
+                tipo_servizio = f.servizio.value;
+          
+          let messaggio = `*Ordinato tramite appPucciaria*\n`;
+          messaggio += `*Buonasera*, sono _${nome_cliente}_\n\n`;
+          messaggio += `Ecco la mia ordinazione:\n`;
+          
+          carrello.forEach(item => {
+              messaggio += `• *${item.qty} x ${item.nome}*`;
+              if (item.ingredienti) messaggio += ` _(${item.ingredienti})_`;
+              messaggio += `\n`;
+          });
+          
+          let totale = carrello.reduce((acc, item) => acc + item.prezzo * item.qty, 0).toFixed(2);
+          
+          messaggio += `\n*Orario di arrivo*: ${orario_scelto}`;
+          messaggio += `\n*Preferenza*: ${tipo_servizio}`;
+          messaggio += `\n*Totale*: ${totale}€`;
+          messaggio += `\n\nGrazie!`;
+          
+          const numero = "393801888965",
+                link = `https://wa.me/${numero}?text=${encodeURIComponent(messaggio)}`;
+          
+          esito_div.innerHTML = `<b>Reindirizzamento a WhatsApp...<br>Conferma l’invio dell’ordine.</b>`;
+          setTimeout(() => {
+                    window.open(link, '_blank');
+                    esito_div.innerHTML = `<b>Ordine inviato! 🚀</b>`;
+                    carrello = [];
+                    svuota_carrello_local();
+                    render_carrello();
+                    setTimeout(() => {
+                        esito_div.innerHTML = "";
+                        fase_carrello = 0;
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    }, 2000);
+                }, 1200);
+            };
+        }
+        fase_carrello = 1;
+        return;
+    }
+};
+}
+
+// Pulsante mobile per aprire/chiudere il carrello (🛒)
+document.getElementById('toggle-carrello-btn').addEventListener('click', () => {
+  carrello_div.classList.toggle('sidecarrello-visible');
+});
+const extraPane = document.getElementById('extra-pane-aside');
+const extraPaneCards = document.getElementById('extra-pane-cards');
+const closeExtraBtn = document.getElementById('close-extra-pane-btn');
+
+if (closeExtraBtn) {
+  closeExtraBtn.onclick = () => {
+    extraPane.classList.remove('visible');
+  };
+}
+
+// Mostra il pannello con minicard
+function mostra_extra_pane() {
+  if (!extraPane || !extraPaneCards) return;
+  extraPaneCards.innerHTML = '';
+
+  const ciccio = getAllProducts().find(p => p.id === 'ciccio-barese');
+  const puccia = getAllProducts().find(p => p.id === 'puccia-vuota');
+
+  if (ciccio) extraPaneCards.innerHTML += renderMiniCardCiccioPuccia(ciccio, 'Ciccio');
+  if (puccia) extraPaneCards.innerHTML += renderMiniCardCiccioPuccia(puccia, 'Puccia Vuota');
+
+  extraPane.classList.add('visible');
+}
+
+
+function init_app() {
+try {
+    if (localStorage.getItem('night_mode') === 'yes') {
+        document.body.classList.add('night');
+    } else {
+        document.body.classList.remove('night');
+    }
+} catch(e){}
+render_categorie_tabs();
+render_sottocategorie_tabs();
+render_catalogo();
+render_carrello();
+const main_header = document.getElementById('main-header');
+if (main_header) main_header.style.display = 'block';
+const prodotti_menu_btn = document.getElementById('prodotti-menu-btn'),
+    prodotti_dropdown = document.getElementById('prodotti-dropdown');
+if (prodotti_menu_btn && prodotti_dropdown) {
+    // Popola il dropdown delle categorie (può essere fatto anche qui)
+    const cat_keys = get_categorie_prodotti();
+    let dropdown_html = '';
+    cat_keys.forEach(k => {
+        dropdown_html += `<li data-cat="${k}">${get_label_categoria(k)}</li>`;
+    });
+    prodotti_dropdown.innerHTML = dropdown_html;
+
+    prodotti_menu_btn.addEventListener('click', function() {
+        const is_expanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', !is_expanded);
+        prodotti_dropdown.style.display = is_expanded ? 'none' : 'block';
+    });
+    document.addEventListener('click', function(event) {
+        if (!prodotti_menu_btn.contains(event.target) && !prodotti_dropdown.contains(event.target)) {
+            prodotti_dropdown.style.display = 'none';
+            prodotti_menu_btn.setAttribute('aria-expanded', 'false');
+        }
+    });
+    prodotti_dropdown.querySelectorAll('li').forEach(item => {
+        item.addEventListener('click', function() {
+            categoria_attiva = this.getAttribute('data-cat');
+            sottocategoria_attiva = "tutte";
+            render_categorie_tabs();
+            render_sottocategorie_tabs();
+            render_catalogo();
+            prodotti_dropdown.style.display = 'none';
+            prodotti_menu_btn.setAttribute('aria-expanded', 'false');
+        });
+    });
+}
+
+// Mostra il banner dei cookie all'avvio
+mostra_cookie_banner();
+}
+
+  
+document.addEventListener('DOMContentLoaded', init_app);
+
+if (extraPaneCards) {
+  extraPaneCards.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    const form = ev.target;
+    if (!form.classList.contains('extrabread-form')) return;
+
+    const card = form.closest('.minicard-extrabread');
+    if (!card) return;
+
+    const id = card.dataset.id;
+    const cat = card.dataset.cat;
+    const sub = card.dataset.sub;
+
+    const prodotto = getAllProducts().find(p => (p.id || p.nome) === id);
+    if (!prodotto) return;
+
+    const qtyInput = form.querySelector('input[name="qty"]');
+    const qty = Math.min(2, Math.max(1, parseInt(qtyInput?.value, 10) || 1));
+    const baseSel = Array.from(form.querySelectorAll('input[name="ing-base"]:checked')).map(cb => cb.value);
+    const prezzo = calcola_prezzo_finale(prodotto, baseSel, [], cat);
+
+    addToCart({
+      prodotto,
+      cat,
+      sub,
+      qty,
+      base: baseSel,
+      extra: [],
+      descrizione: '',
+      prezzo
+    });
+
+    // Chiude il pannello dopo l'aggiunta
+    extraPane.classList.remove('visible');
+  });
+
+  // Gestione + / − quantità nel pannello extra-pane
+  extraPaneCards.addEventListener('click', function (e) {
+    const tgt = e.target;
+    if (!tgt.closest('.bevanda-qty-stepper')) return;
+
+    const input = tgt.closest('.bevanda-qty-stepper').querySelector('input[name="qty"]');
+    if (!input) return;
+    let v = parseInt(input.value, 10) || 1;
+
+    if (tgt.classList.contains('qty-plus')) {
+      input.value = Math.min(2, v + 1);
+    } else if (tgt.classList.contains('qty-minus')) {
+      input.value = Math.max(1, v - 1);
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const editModal = document.getElementById("edit-modal");
+
+  if (editModal) {
+    editModal.addEventListener("click", (e) => {
+      // Se clicchi fuori dal contenuto (cioè sull'overlay)
+      if (e.target === editModal) {
+        editModal.classList.add("hidden");
+      }
+    });
+  }
+});
+

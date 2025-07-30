@@ -1,0 +1,137 @@
+/* === HEADER COMPATTO E FISSO === */
+#app-internal-header {
+  background: var(--giallo-pucciaria);
+  box-shadow: var(--ombra-morbida);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 60px;
+  padding: 0 1em;
+  overflow: hidden;
+}
+
+/* Disattiva decorazioni inutili */
+#app-internal-header .header-bg,
+#app-internal-header .header-overlay {
+  display: none !important;
+  height: 0 !important;
+}
+
+/* === CONTENUTO HEADER SNELLITO === */
+.header-inner {
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  flex-wrap: nowrap;
+  text-align: center;
+}
+
+/* Blocchi interni */
+.header-logo,
+.main.header,
+#orologio-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* === LOGO === */
+.mini-logo {
+  height: 32px;
+  width: auto;
+  filter: drop-shadow(0 0 3px #33200a55);
+  transition: transform 0.2s;
+}
+.mini-logo:hover {
+  transform: scale(1.05);
+}
+
+/* === TITOLO === */
+.main.header h1 {
+  font-family: var(--font-title);
+  font-size: 1.2em;
+  color: var(--nero-fumo);
+  margin: 0;
+  line-height: 1;
+  text-align: center;
+}
+
+/* === CLAIM (opzionale, ma nascosto in header snello) === */
+.main.header .claim {
+  display: none;
+}
+
+/* === OROLOGIO === */
+#orologio-header {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--nero-fumo);
+}
+
+/* === NIGHT MODE === */
+body.night #app-internal-header {
+  background: #222218;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.night .main.header h1 {
+  color: var(--giallo-pucciaria);
+}
+
+body.night .mini-logo {
+  filter: drop-shadow(0 0 5px rgba(255, 226, 75, 0.3));
+}
+
+body.night #orologio-header {
+  color: #eee3aa;
+}
+
+/* === RESPONSIVE: MOBILE === */
+@media (max-width: 768px) {
+  #app-internal-header {
+    height: 60px;
+    padding: 0 0.6em;
+  }
+
+  .header-inner {
+    gap: 0.5em;
+  }
+
+  .mini-logo {
+    height: 28px;
+  }
+
+  .main.header h1 {
+    font-size: 1em;
+  }
+
+  #orologio-header {
+    font-size: 0.8em;
+  }
+}
+body.night #main-app,
+body.night main,
+body.night .app-main-content,
+body.night .main-content-layout,
+body.night #catalogo-prodotti,
+body.night .card,
+body.night aside,
+body.night #carrello,
+body.night #riepilogo-ordine,
+body.night .riepilogo-wrapper,
+body.night .riepilogo-item,
+body.night .modal,
+body.night .extra-pane-content,
+body.night nav,
+body.night .categorie-tabs,
+body.night .sottocategorie-tabs,
+body.night #cookie-banner {
+  background-color: #1e1e1e !important;
+  color: #f1f1f1;
+}

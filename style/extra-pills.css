@@ -1,0 +1,136 @@
+/* === GRUPPO PILLS EXTRA === */
+.extra-pills-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6em 0.8em;
+  margin: clamp(1em, 3vw, 1.6em) 0;
+  max-width: 100%;
+  word-break: break-word;
+  overflow: hidden;
+}
+
+/* === PILLS BASE: CATEGORIA + EXTRA === */
+.pill-cat,
+.pill-extra {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #fff9d6;
+  border: 2px solid var(--giallo-pucciaria);
+  color: var(--nero-fumo);
+  padding: 0.4em 1em;
+  font-weight: 600;
+  font-size: clamp(0.85em, 2.5vw, 0.95em);
+  border-radius: 2em;
+  cursor: pointer;
+  box-shadow: var(--ombra-morbida);
+  transition: all 0.2s ease;
+  margin: 0.3em 0.5em 0.6em 0;
+}
+
+/* Hover */
+.pill-cat:hover,
+.pill-extra:hover {
+  background: var(--giallo-pucciaria);
+  transform: translateY(-1px);
+}
+
+/* Attiva */
+.pill-extra.pill-active {
+  background: var(--giallo-pucciaria);
+  border-color: var(--nero-fumo);
+  color: var(--nero-fumo);
+  font-weight: 700;
+}
+
+/* === PILL BACK (← Torna indietro) === */
+.pill-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-title);
+  font-size: clamp(1em, 2.8vw, 1.1em);
+  font-weight: 600;
+  color: var(--nero-fumo);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4em 0.6em;
+  margin-bottom: 0.5em;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.pill-back::before {
+  content: "←";
+  font-size: 1.2em;
+  margin-right: 0.1em;
+  color: var(--giallo-pucciaria);
+}
+
+.pill-back:hover {
+  color: var(--giallo-pucciaria);
+  transform: translateX(-3px);
+}
+
+/* === NIGHT MODE === */
+body.night .pill-cat,
+body.night .pill-extra {
+  background: #1a1a1a;
+  color: var(--giallo-pucciaria);
+  border-color: var(--giallo-pucciaria);
+  box-shadow: 0 0 6px rgba(255, 226, 75, 0.2);
+}
+
+body.night .pill-cat:hover,
+body.night .pill-extra:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+}
+
+body.night .pill-extra.pill-active {
+  background: var(--giallo-pucciaria);
+  color: #000;
+  border-color: #000;
+}
+
+body.night .pill-back {
+  color: var(--giallo-pucciaria);
+}
+
+body.night .pill-back:hover {
+  color: #ffffff;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  .pill-cat,
+  .pill-extra {
+    padding: 0.3em 0.8em;
+    font-size: 0.88em;
+    margin: 0.3em;
+  }
+
+  .extra-pills-group {
+    gap: 0.5em 0.6em;
+    margin: 1em 0 1.4em;
+  }
+
+  .pill-back {
+    font-size: 1em;
+    padding: 0.3em 0.5em;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .pill-cat,
+  .pill-extra {
+    font-size: 0.8em;
+    padding: 0.3em 0.7em;
+  }
+
+  .pill-back {
+    font-size: 0.95em;
+  }
+}
