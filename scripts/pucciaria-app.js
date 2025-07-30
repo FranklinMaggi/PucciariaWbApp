@@ -1443,7 +1443,8 @@ function render_carrello() {
     }
     else if (e.target.id === 'carrello-conferma-btn') {
       carrello_div.classList.remove('sidecarrello-visible');
-      esito.hidden = false;
+      document.getElementById('esito').style.display = 'block';
+     
       setTimeout(() => esito.scrollIntoView({ behavior: 'smooth' }), 300);
 
       const ora = new Date(), h = ora.getHours(), m = ora.getMinutes();

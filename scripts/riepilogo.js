@@ -58,7 +58,9 @@ function generaOrariDisponibili() {
         `;
     
         document.getElementById('annulla-form-btn')?.addEventListener('click', () => {
-        esito.innerHTML = "";
+            esito.innerHTML = "";
+            esito.hidden = true;
+            esito.style.display = 'none';
         });
     
         document.getElementById('ordine-dati-form')?.addEventListener('submit', function (ev) {
