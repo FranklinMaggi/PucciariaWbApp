@@ -1,5 +1,7 @@
+
 import { mostra_riepilogo_ordine } from './riepilogo.js';
-  // =========================================================================
+
+// =========================================================================
 // Pucciaria - Il Regno delle Pucce (Codice Serpentinato e Funzionante)
 // Questo file contiene tutta la logica e la gestione dell'interfaccia utente.
 // È ottimizzato per essere un singolo script autosufficiente.
@@ -236,7 +238,6 @@ window.addEventListener('DOMContentLoaded', mostra_cookie_banner);
 let carrello = [],
 categoria_attiva = "tutti",
 sottocategoria_attiva = "tutte";
-
 
 // ===== MAPPA INGREDIENTI BASE GLOBALE =====
 const mappa_ingredienti = {};
