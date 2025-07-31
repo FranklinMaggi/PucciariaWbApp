@@ -46,7 +46,7 @@
 #edit-form-container h2 {
   font-family: var(--font-title);
   font-size: clamp(1.3em, 4vw, 1.6em);
-  color: var(--nero-fumo);
+  color: var(--giallo-pucciaria);
   margin-bottom: 0.8em;
 }
 
@@ -128,29 +128,9 @@
   transform: scale(1.2) rotate(10deg);
 }
 
-
 #close-modal.close-modal-btn:focus-visible {
   outline: 2px solid var(--giallo-pucciaria);
   outline-offset: 4px;
-}
-
-/* === NIGHT MODE === */
-body.night #edit-form-container,
-body.night .modal-content-wrapper,
-body.night .modal-footer {
-  background: #1a1a1a;
-  color: #f1f1f1;
-  border-color: var(--giallo-pucciaria);
-  box-shadow: 0 4px 20px rgba(255, 226, 75, 0.1);
-}
-
-body.night .modal-price {
-  background: #2a2a2a;
-  color: var(--giallo-pucciaria);
-}
-
-body.night .customize-form label {
-  color: #f1f1f1;
 }
 
 /* === LANDSCAPE MOBILE === */
@@ -165,4 +145,41 @@ body.night .customize-form label {
     padding: 0.8em 1em;
     font-size: 0.9em;
   }
+}
+
+/* === NIGHT MODE ENHANCED === */
+body.night #edit-form-container,
+body.night .modal-content-wrapper {
+  background: #1e1e1e;
+  color: #f1f1f1;
+  border-color: var(--giallo-pucciaria);
+  box-shadow: 0 0 16px rgba(255, 226, 75, 0.1);
+}
+
+body.night .modal-price {
+  background: #2a2a2a;
+  color: var(--giallo-pucciaria);
+  box-shadow: 0 0 6px rgba(255, 226, 75, 0.2);
+}
+
+body.night .customize-form label {
+  color: #eee;
+  background: #2a2a2a;
+  border-radius: 0.6em;
+  padding: 0.4em 0.8em;
+  font-weight: 500;
+}
+
+body.night .customize-form input[type="checkbox"] {
+  accent-color: var(--giallo-pucciaria);
+}
+
+body.night .modal-footer {
+  background: #121212;
+  box-shadow: 0 0 8px rgba(255, 226, 75, 0.1);
+}
+
+body.night #edit-modal {
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(6px);
 }
