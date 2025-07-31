@@ -1,3 +1,4 @@
+import { showAllergeni ,aggiornaAllergeniDinamici } from './allergeni.js';
 
 import { mostra_riepilogo_ordine } from './riepilogo.js';
 
@@ -502,97 +503,105 @@ function get_descrizione_ingredienti(prodotto, checked_base_ids, active_pills) {
 }
 
 
+function bindAllergeniLiveUpdate(container = document) {
+  container.querySelectorAll('.quick-form').forEach(form => {
+    const checkboxes = form.querySelectorAll('.quick-ingredients input[type="checkbox"]');
+    if (!checkboxes.length) return;
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', () => aggiornaAllergeniDinamici(form));
+    });
+
+    // inizializza stato
+    aggiornaAllergeniDinamici(form);
+  });
+}
+
 function render_search_results(products) {
   if (!catalogo_div) return;
 
   if (!products.length) {
-    catalogo_div.innerHTML = `<div style="padding:1.7em 0;text-align:center;font-size:1.13em">
-      Nessun prodotto trovato 😕
-    </div>`;
+    catalogo_div.innerHTML = `
+      <div class="no-results">
+        Nessun prodotto trovato 😕
+      </div>`;
     return;
   }
 
   const query = document.getElementById('search-input')?.value || '';
-  catalogo_div.innerHTML = `
-    <h3 class="cat-title">Risultati per: "<span style="color:#fab100">${query}</span>"</h3>
-    <div class="cards-column">
-      ${products.map(prod => {
-        const unique_id = prod.id || prod.nome;
-        const img_path = `./img/${unique_id}.jpeg`;
+  catalogo_div.innerHTML = `<h3 class="cat-title">Risultati per: "<span style="color:#fab100">${query}</span>"</h3><div class="cards-column">`;
 
-        // === BEVANDE ===
-        if (prod.cat_key === 'prodotti_bevande' || prod.tipo === 'bevanda') {
-          return `
-            <div class="card card-side" data-id="${unique_id}" data-cat="${prod.cat_key}" data-subcat="${prod.sub_key}">
-              <div class="card-content">
-                <h2>${prod.nome}</h2>
-                <p>${prod.descrizione || ''}</p>
-                <p><b>${prod.prezzo.toFixed(2)} €</b></p>
-                <form class="bevanda-form" autocomplete="off">
-                  <div class="bevanda-qty-stepper">
-                    <button type="button" class="qty-minus">−</button>
-                    <input type="number" name="qty" min="1" max="99" value="1" class="bevanda-qty-input">
-                    <button type="button" class="qty-plus">+</button>
-                  </div>
-                  <button type="submit" class="carrello-btn">Aggiungi al carrello</button>
-                </form>
+  catalogo_div.innerHTML += products.map(prod => {
+    const unique_id = prod.id || prod.nome;
+    const img_path = `./img/${unique_id}.jpeg`;
+
+    if (prod.cat_key === 'prodotti_bevande' || prod.tipo === 'bevanda') {
+      return `
+        <div class="card card-side" data-id="${unique_id}" data-cat="${prod.cat_key}" data-subcat="${prod.sub_key}">
+          <div class="card-content">
+            <h2>${prod.nome}</h2>
+            <p>${prod.descrizione || ''}</p>
+            <p><b>${prod.prezzo.toFixed(2)} €</b></p>
+            <form class="bevanda-form" autocomplete="off">
+              <div class="bevanda-qty-stepper">
+                <button type="button" class="qty-minus">−</button>
+                <input type="number" name="qty" min="1" max="99" value="1" class="bevanda-qty-input">
+                <button type="button" class="qty-plus">+</button>
               </div>
-              <div class="card-img-wrap">
-                <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
-              </div>
-            </div>
-          `;
-        }
-
-        // === PRODOTTI STANDARD ===
-        const ib = (prod.ingredienti_base || []).map(x => mappa_ingredienti[x.id]).filter(Boolean);
-        const modificabili = ib.filter(ing => ing.modificabile !== false);
-
-        const ingredients_html = renderIngredientiBase(modificabili, []);
-        const show_extra = (prod.cat_key === 'prodotti_senza_puccia' || prod.cat_key === 'prodotti_antipasti');
-
-        let extraBreadHTML = '';
-        if (show_extra) {
-          const ciccio = getAllProducts().find(p => p.id === 'ciccio-barese');
-          const puccia = getAllProducts().find(p => p.id === 'puccia-vuota');
-          if (ciccio) extraBreadHTML += renderMiniCardCiccioPuccia(ciccio, 'Ciccio');
-          if (puccia) extraBreadHTML += renderMiniCardCiccioPuccia(puccia, 'Puccia Vuota');
-        }
-        
-        return `
-          <div class="card card-side" data-id="${unique_id}" data-cat="${prod.cat_key}" data-subcat="${prod.sub_key}">
-            <div class="card-content">
-              <h2>${prod.nome}</h2>
-              <p>${prod.descrizione || ''}</p>
-              <p><b>${prod.prezzo.toFixed(2)} €</b></p>
-              <form class="quick-form" autocomplete="off">
-                <div class="quick-ingredients">
-                  ${ingredients_html}
-                </div>
-                <button type="submit" class="carrello-btn" style="margin-top:0.7em;">Aggiungi Rapido</button>
-                <button type="button" class="customize-btn" style="margin-top:0.5em;">Personalizza Extra</button>
-          
-                </form>
-                ${show_extra ? `
-  <p class="info-ciccio-msg" style="font-size: 0.92em; color: #a94442; margin-top: 0.8em;">
-    Non serviamo pane con i nostri <b>senza puccia</b> e <b>antipasti</b>.<br>
-    Se desideri del pane, puoi aggiungere al carrello un <b>Ciccio</b> o una <b>Puccia Vuota</b> qui sotto.
-  </p>
-` : ''}
-${extraBreadHTML}
-
-            </div>
-            <div class="card-img-wrap">
-              <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
-            </div>
+              <button type="submit" class="carrello-btn">Aggiungi al carrello</button>
+            </form>
           </div>
-        `;
-      }).join('')}
-    </div>
-  `;
+          <div class="card-img-wrap">
+            <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
+          </div>
+        </div>
+      `;
+    }
+
+    const ingredientiBase = (prod.ingredienti_base || []).map(x => mappa_ingredienti[x.id]).filter(Boolean);
+    const modificabili = ingredientiBase.filter(ing => ing.modificabile !== false);
+    const ingredients_html = renderIngredientiBase(modificabili, []);
+    const allergeni_html = showAllergeni(ingredientiBase);
+
+    const show_extra = prod.cat_key === 'prodotti_senza_puccia' || prod.cat_key === 'prodotti_antipasti';
+    let extraBreadHTML = '';
+
+    if (show_extra) {
+      const ciccio = getAllProducts().find(p => p.id === 'ciccio-barese');
+      const puccia = getAllProducts().find(p => p.id === 'puccia-vuota');
+      if (ciccio) extraBreadHTML += renderMiniCardCiccioPuccia(ciccio, 'Ciccio');
+      if (puccia) extraBreadHTML += renderMiniCardCiccioPuccia(puccia, 'Puccia Vuota');
+    }
+
+    return `
+      <div class="card card-side" data-id="${unique_id}" data-cat="${prod.cat_key}" data-subcat="${prod.sub_key}">
+        <div class="card-content">
+          <h2>${prod.nome}</h2>
+          <div class="allergeni-svg-box">${allergeni_html}</div>
+          <p>${prod.descrizione || ''}</p>
+          <p><b>${prod.prezzo.toFixed(2)} €</b></p>
+          <form class="quick-form" autocomplete="off">
+            <div class="quick-ingredients">${ingredients_html}</div>
+            <button type="submit" class="carrello-btn">Aggiungi Rapido</button>
+            <button type="button" class="customize-btn">Personalizza Extra</button>
+          </form>
+          ${show_extra ? `
+          <p class="info-ciccio-msg">
+            Non serviamo pane con i nostri <b>senza puccia</b> e <b>antipasti</b>.<br>
+            Se desideri del pane, puoi aggiungere al carrello un <b>Ciccio</b> o una <b>Puccia Vuota</b>.
+          </p>` : ''}
+          ${extraBreadHTML}
+        </div>
+        <div class="card-img-wrap">
+          <img src="${img_path}" alt="${prod.nome}" class="card-img" onerror="this.onerror=null;this.src='./img/placeholder.png';">
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  catalogo_div.innerHTML += `</div>`;
+  bindAllergeniLiveUpdate(catalogo_div);
 }
-
-
 
 
 // Funzione aggiornata: render_catalogo con mini-card ciccio/puccia al posto delle pills
@@ -664,7 +673,12 @@ function render_catalogo() {
         return `
   <div class="card card-side" data-id="${unique_id}" data-cat="${cat_key}" data-subcat="${sub_key}">
     <div class="card-content">
-      <h2>${prod.nome}</h2>
+      <h2>${prod.nome}
+      </h2>
+        <div class="allergeni-svg-box">
+    ${showAllergeni(ib)}
+  </div>
+
       <p>${prod.descrizione || ''}</p>
       <p><b><span class="card-prezzo" data-price-container>${prod.prezzo.toFixed(2)}</span> €</b></p>
 
@@ -672,9 +686,12 @@ function render_catalogo() {
   <div class="quick-ingredients">
     ${ingredients_html}
   </div>
+
+
   <button type="submit" class="carrello-btn" style="margin-top:0.7em;">Aggiungi Rapido</button>
   <button type="button" class="customize-btn" style="margin-top:0.5em;">Personalizza Extra</button>
 </form>
+
 
 ${(cat_key === 'prodotti_senza_puccia' || cat_key === 'prodotti_antipasti') ? `
   <p class="info-ciccio-msg" style="font-size: 0.92em; color: #a94442; margin-top: 0.8em;">
@@ -695,6 +712,8 @@ ${extraBreadHTML}
       catalogo_div.innerHTML += products_html + `</div>`;
     });
   });
+ 
+  bindAllergeniLiveUpdate(catalogo_div);
 }
 
 function renderMiniCardCiccioPuccia(prod, tipo = 'ciccio') {
@@ -716,7 +735,9 @@ function renderMiniCardCiccioPuccia(prod, tipo = 'ciccio') {
         </div>
         <button type="submit" class="carrello-btn" style="margin-top:0.5em;">Aggiungi al carrello</button>
       </form>
-    </div>`;
+    </div>
+
+`;
 }
 
 function getExtraFlag(catKey = '') {
