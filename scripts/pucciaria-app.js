@@ -1,4 +1,4 @@
-import { showAllergeni ,aggiornaAllergeniDinamici } from './allergeni.js';
+import { showAllergeni , bindAllergeniLiveUpdate } from './allergeni.js';
 
 import { mostra_riepilogo_ordine } from './riepilogo.js';
 
@@ -503,21 +503,10 @@ function get_descrizione_ingredienti(prodotto, checked_base_ids, active_pills) {
 }
 
 
-function bindAllergeniLiveUpdate(container = document) {
-  container.querySelectorAll('.quick-form').forEach(form => {
-    const checkboxes = form.querySelectorAll('.quick-ingredients input[type="checkbox"]');
-    if (!checkboxes.length) return;
 
-    checkboxes.forEach(cb => {
-      cb.addEventListener('change', () => aggiornaAllergeniDinamici(form));
-    });
 
-    // inizializza stato
-    aggiornaAllergeniDinamici(form);
-  });
-}
-
-function render_search_results(products) {
+ // === RENDER SEARCH ===
+ function render_search_results(products) {
   if (!catalogo_div) return;
 
   if (!products.length) {
@@ -600,9 +589,8 @@ function render_search_results(products) {
   }).join('');
 
   catalogo_div.innerHTML += `</div>`;
-  bindAllergeniLiveUpdate(catalogo_div);
+ 
 }
-
 
 // Funzione aggiornata: render_catalogo con mini-card ciccio/puccia al posto delle pills
 function render_catalogo() {
@@ -710,11 +698,12 @@ ${extraBreadHTML}
       }).join('');
 
       catalogo_div.innerHTML += products_html + `</div>`;
-    });
+
+
+    });  
   });
  
-  bindAllergeniLiveUpdate(catalogo_div);
-}
+  }
 
 function renderMiniCardCiccioPuccia(prod, tipo = 'ciccio') {
   const id = prod.id || prod.nome;
