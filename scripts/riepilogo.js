@@ -37,7 +37,7 @@ function generaOrariDisponibili() {
         esito.innerHTML = `
         <b>Riepilogo ordine:</b>
         <ul>${riepilogo}</ul>
-        <div class="totale">Totale: ${totale}€</div>
+        
         <form id="ordine-dati-form" class="ordine-form">
             <input name="nome_cliente" placeholder="Il tuo nome" required value="${nomeCliente}">
            <select name="orario" required>
@@ -79,7 +79,7 @@ function generaOrariDisponibili() {
             if (item.ingredienti) msg += ` (${item.ingredienti})`;
             msg += `\n`;
         });
-        msg += `\n*Orario*: ${orario}\n*Servizio*: ${servizio}\n*Totale*: ${totale}€\n\nGrazie!`;
+        msg += `\n*Orario*: ${orario}\n*Servizio*: ${servizio}\n\n\nGrazie!`;
         
 
         window.open(`https://wa.me/393801888965?text=${encodeURIComponent(msg)}`, '_blank');
