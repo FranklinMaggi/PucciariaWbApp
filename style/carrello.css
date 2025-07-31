@@ -262,3 +262,50 @@ body.night #carrello-immagine {
 #annulla-form-btn:hover {
   background-color: #fffbe5;
 }
+/* MIGLIORA LEGGIBILITÀ TESTI NEL CARRELLO */
+body.night .carrello-item {
+  color: #f1f1f1;
+  border-color: #333;
+}
+body.night .carrello-item b {
+  color: #ffe24b;
+}
+
+/* MIGLIORA CONTRASTO AZIONI */
+body.night .item-actions button {
+  background: #2a2a2a;
+  color: var(--giallo-pucciaria);
+  border: 2px solid var(--giallo-pucciaria);
+}
+body.night .item-actions button:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+}
+
+/* STILE QUANTITÀ */
+body.night .qty-num {
+  color: #ffe24b;
+  font-weight: bold;
+}
+
+/* PANNELLO CONFERMA ORDINE + SVUOTA */
+body.night .carrello-btn.full-width {
+  background: #222;
+  color: var(--giallo-pucciaria);
+  border-color: var(--giallo-pucciaria);
+}
+body.night .carrello-btn.full-width:hover {
+  background: var(--giallo-pucciaria);
+  color: #000;
+}
+
+/* PULSANTE CHIUDI */
+body.night #close-carrello-btn {
+  background: transparent;
+  color: var(--giallo-pucciaria);
+  border: none;
+  font-size: 1.6em;
+}
+body.night #close-carrello-btn:hover {
+  color: #fff;
+}
