@@ -1,15 +1,16 @@
 /*Main.css*/
-@import "categorie-tab.css" ;
+
 @import "base.css";
 @import "responsive.css";
 @import "cards.css";
 @import "modale.css" ;
 @import "extra-pills.css";
+@import "categorie-tab.css" ;
 @import "main-page.css";
 @import "esito.css";
 @import "riepilogo.css";
 @import "carrello.css";
-@import "typography.css";
+
 @import "button.css";
 @import "clock.css";
 @import "allergeni.css";

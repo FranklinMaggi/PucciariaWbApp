@@ -134,3 +134,17 @@ body.night .pill-back:hover {
     font-size: 0.95em;
   }
 }
+.alt-select-hidden {
+  display: none;
+  margin-top: 0.3em;
+  padding: 0.3em 0.5em;
+  font-size: 0.95em;
+  border: 1px solid #ddd;
+  border-radius: 0.4em;
+  background: #fffef2;
+  width: 100%;
+}
+
+.alt-select-hidden.visible {
+  display: block;
+}

@@ -1,0 +1,84 @@
+/* === CONTAINER PRINCIPALE === */
+.allergeni,
+.allergeni-pill-row,
+.allergeni-svg-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: center;
+  margin-top: 0.5em;
+  padding: 0.4em;
+  border-radius: 0.8em;
+  background-color: transparent;
+}
+
+/* === WRAPPER INTERATTIVO === */
+.allergene-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 0 0.25em;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+
+.allergene-icon-wrapper.active {
+  transform: scale(1.4);
+  z-index: 5;
+}
+
+/* === ICONA ALLERGENE === */
+.allergene-svg,
+.allergeni-svg-box .allergene-svg {
+  width: 36px;
+  height: 36px;
+  padding: 4px;
+  background: #111;
+  border-radius: 50%;
+  object-fit: contain;
+  box-shadow: 0 0 0 2px var(--giallo-pucciaria);
+  transition: transform 0.25s ease;
+  position: relative;
+}
+
+/* === HOVER ANIMAZIONE SOLO DESKTOP === */
+@media (hover: hover) {
+  .allergene-icon-wrapper:hover {
+    transform: scale(1.15);
+  }
+}
+
+/* === TOOLTIP DA title === */
+.allergene-icon-wrapper:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -1.8em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fffce6;
+  padding: 0.3em 0.6em;
+  font-size: 0.65em;
+  white-space: nowrap;
+  border-radius: 0.3em;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* === RESPONSIVE PER MOBILE === */
+@media screen and (max-width: 480px) {
+  .allergene-svg {
+    width: 54px;
+    height: 54px;
+    padding: 3px;
+  }
+
+  .allergene-icon-wrapper.active {
+    transform: scale(3.3);
+  }
+
+  .allergene-icon-wrapper:hover::after {
+    font-size: 0.6em;
+    bottom: -1.4em;
+  }
+}

@@ -1,23 +1,24 @@
-/* === CLOCK BASE STYLE (day mode) === */
+/* === CLOCK BASE STYLE === */
 .clock-widget {
   font-family: 'Courier New', monospace;
   font-weight: bold;
-  font-size: 1.1em;
-  color: var(--nero-fumo); /* colore testuale neutro in day mode */
+  font-size: 1.05em;
+  color: var(--nero-fumo);
   background: #fffdf1;
-  padding: 0.4em 0.8em;
-  border-radius: 1em;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
-  letter-spacing: 0.05em;
-  animation: pulseClock 3s infinite ease-in-out;
-  transition: all 0.3s ease-in-out;
+  padding: 0.45em 0.9em;
+  border-radius: 1.5em;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.12);
+  letter-spacing: 0.04em;
+  animation: pulseClock 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+  display: inline-block;
+  user-select: none;
 }
 
-/* === ANIMAZIONE PULSANTE CLOCK === */
+/* === CLOCK ANIMAZIONE GIORNO === */
 @keyframes pulseClock {
-  0%   { box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); }
-  50%  { box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); }
-  100% { box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); }
+  0%, 100% { box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); }
+  50%      { box-shadow: 0 0 10px rgba(0, 0, 0, 0.25); }
 }
 
 /* === NIGHT MODE OVERRIDE === */
@@ -25,12 +26,20 @@ body.night .clock-widget {
   background: #111107;
   color: #ffe24b;
   box-shadow: 0 0 6px rgba(255, 226, 75, 0.4);
-  animation: pulseClockNight 3s infinite ease-in-out;
+  animation: pulseClockNight 3s ease-in-out infinite;
 }
 
-/* === ANIMAZIONE PER NIGHT MODE === */
+/* === CLOCK ANIMAZIONE NIGHT === */
 @keyframes pulseClockNight {
-  0%   { box-shadow: 0 0 6px rgba(255, 226, 75, 0.3); }
-  50%  { box-shadow: 0 0 10px rgba(255, 226, 75, 0.7); }
-  100% { box-shadow: 0 0 6px rgba(255, 226, 75, 0.3); }
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 226, 75, 0.3); }
+  50%      { box-shadow: 0 0 10px rgba(255, 226, 75, 0.65); }
+}
+
+/* === RESPONSIVE CLOCK === */
+@media (max-width: 480px) {
+  .clock-widget {
+    font-size: 0.95em;
+    padding: 0.35em 0.8em;
+    border-radius: 1em;
+  }
 }
