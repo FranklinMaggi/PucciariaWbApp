@@ -44,21 +44,6 @@ body.night .card-img-wrap img {
   position: relative;
 }
 
-/* SPIA PER LE IMMAGINI (opzionale) */
-body.night .card-img-wrap::after {
-  content: '🌙';
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  background: rgba(255, 226, 75, 0.85);
-  color: black;
-  font-size: 0.8em;
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  z-index: 3;
-  pointer-events: none;
-  font-family: sans-serif;
-}
 
 /* === LINK === */
 a {
