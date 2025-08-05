@@ -82,7 +82,7 @@ function generaOrariDisponibili() {
         msg += `\n*Orario*: ${orario}\n*Servizio*: ${servizio}\n\n\nGrazie!`;
         
 
-        window.open(`https://wa.me/393801888965?text=${encodeURIComponent(msg)}`, '_blank');
+        window.open(`https://wa.me/393395221258?text=${encodeURIComponent(msg)}`, '_blank');
     
         carrello.length = 0; // svuota array in-place
         svuota_carrello_local();
